@@ -184,8 +184,8 @@ def main():
         if img.shape != (1024, 1024):
             img = img[:, :, 0]
         img_resized = skimage.transform.resize(img, (256, 256))
-        test_X.append((np.array(img_resized)).reshape(256, 256, 1))
-        if i % 100 == 0:
+        test_X.append((np.array(img_resized)).reshape(256, 256))
+        if i % 300 == 0:
             print(i)
     test_X = np.array(test_X)
 
@@ -220,7 +220,7 @@ def main():
         activate_classes = np.where((probs > thresholds)[0] == True)[0]  # get the activated class
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
-            output = gcam.generate(target_layer="module.densenet121.features.denseblock4.denselayer16.conv.2")
+            output = gcam.generate(target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
             #### this output is heatmap ####
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
