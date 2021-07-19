@@ -90,7 +90,7 @@ class DenseNet121(nn.Module):
 
 
 def main():
-    # n_epochs = 10
+    n_epochs = 10
     N_CLASSES = 8
     BATCH_SIZE = 32
     # prepare training set
@@ -105,7 +105,7 @@ def main():
     augment_img = []
     augment_label = []
     augment_weight = []
-    for i in range(1):
+    for i in range(1):  # OOM removed augmentation
         for j in range(len(train_dataset)):
             single_img, single_label, single_weight = train_dataset[j]
             augment_img.append(single_img)
@@ -140,7 +140,7 @@ def main():
 
     optimizer = optim.Adam(model.parameters(), lr=0.0002, betas=(0.9, 0.999))
     total_length = len(augment_img)
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(n_epochs):  # loop over the dataset multiple times
         print("Epoch:", epoch)
         running_loss = 0.0
 
@@ -167,7 +167,7 @@ def main():
             loss = criterion(outputs, labels_sub)
             loss.backward()
             optimizer.step()
-            running_loss += loss.data[0]
+            running_loss += loss.item()
 
         # ======== validation ========
         # switch to evaluate mode
