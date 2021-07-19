@@ -29,7 +29,7 @@ def compute_AUCs(gt, pred):
 class ChestXrayDataSet(Dataset):
     def __init__(self, train_or_valid="train", transform=None):
 
-        data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data'
+        data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'
         self.train_or_valid = train_or_valid
         if train_or_valid == "train":
             self.X = np.uint8(np.load(data_path + "train_X_small.npy") * 255 * 255)
