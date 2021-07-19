@@ -169,7 +169,7 @@ class GradCAM(PropagationBase):
 
 def main():
     test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
-    img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
+    img_folder_path = '/home/qiyuan/2021summer/nih/data/images/'
 
     with open(test_txt_path, "r") as f:
         test_list = [i.strip() for i in f.readlines()]
