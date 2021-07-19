@@ -187,6 +187,7 @@ def main():
         test_X.append((np.array(img_resized)).reshape(256, 256))
         if i % 300 == 0:
             print(i)
+            break
     test_X = np.array(test_X)
 
     model = DenseNet121(8).cuda()
