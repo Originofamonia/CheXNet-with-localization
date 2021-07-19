@@ -20,7 +20,7 @@ def compute_AUCs(gt, pred):
     AUROCs = []
     gt_np = gt.cpu().numpy()
     pred_np = pred.cpu().numpy()
-    for i in range(N_CLASSES):
+    for i in range(8):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     return AUROCs
 
@@ -29,7 +29,7 @@ def compute_AUCs(gt, pred):
 class ChestXrayDataSet(Dataset):
     def __init__(self, train_or_valid="train", transform=None):
 
-        data_path = sys.argv[1]
+        data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data'
         self.train_or_valid = train_or_valid
         if train_or_valid == "train":
             self.X = np.uint8(np.load(data_path + "train_X_small.npy") * 255 * 255)
@@ -89,8 +89,7 @@ class DenseNet121(nn.Module):
         return x
 
 
-if __name__ == '__main__':
-
+def main():
     # prepare training set
     train_dataset = ChestXrayDataSet(train_or_valid="train",
                                      transform=transforms.Compose([
@@ -204,3 +203,7 @@ if __name__ == '__main__':
                    'DenseNet121_aug4_pretrain_noWeight_' + str(epoch + 1) + '_' + str(AUROC_avg) + '.pkl')
 
     print('Finished Training')
+
+
+if __name__ == '__main__':
+    main()
