@@ -191,7 +191,7 @@ def main():
 
     model = DenseNet121(8).cuda()
     model = torch.nn.DataParallel(model)
-    model.load_state_dict(torch.load("model/DenseNet121_aug4_pretrain_WeightBelow1_1_0.829766922537.pkl"))
+    model.load_state_dict(torch.load("DenseNet121_aug4_pretrain_noWeight_9_0.9901611066017305.pkl"))
     print("model loaded")
 
     test_dataset = ChestXrayDataSet_plot(test_X, transform=transforms.Compose([
