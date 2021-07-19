@@ -16,11 +16,11 @@ from torch.utils.data import Dataset, DataLoader
 os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
-def compute_AUCs(gt, pred):
+def compute_AUCs(gt, pred, N_CLASSES):
     AUROCs = []
     gt_np = gt.cpu().numpy()
     pred_np = pred.cpu().numpy()
-    for i in range(8):
+    for i in range(N_CLASSES):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     return AUROCs
 
@@ -90,48 +90,49 @@ class DenseNet121(nn.Module):
 
 
 def main():
+    # n_epochs = 10
+    N_CLASSES = 8
+    BATCH_SIZE = 32
     # prepare training set
     train_dataset = ChestXrayDataSet(train_or_valid="train",
                                      transform=transforms.Compose([
                                          transforms.ToPILImage(),
-                                         transforms.RandomCrop(224),
-                                         transforms.RandomHorizontalFlip(),
+                                         transforms.CenterCrop(224),  # was RandomCrop
+                                         # transforms.RandomHorizontalFlip(),
                                          transforms.ToTensor(),
-                                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+                                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
                                      ]))
     augment_img = []
     augment_label = []
     augment_weight = []
-    for i in range(4):
+    for i in range(1):
         for j in range(len(train_dataset)):
             single_img, single_label, single_weight = train_dataset[j]
             augment_img.append(single_img)
             augment_label.append(single_label)
             augment_weight.append(single_weight)
             if j % 1000 == 0:
-                print(j)
+                print('augment:', j)
 
-    # shuffe data
+    # shuffle data
     perm_index = torch.randperm(len(augment_label))
     augment_img = torch.stack(augment_img)[perm_index]
     augment_label = torch.stack(augment_label)[perm_index]
     augment_weight = torch.stack(augment_weight)[perm_index]
 
     # prepare validation set
-    valid_dataset = ChestXrayDataSet(train_or_valid="valid",
-                                     transform=transforms.Compose([
-                                         transforms.ToPILImage(),
-                                         transforms.CenterCrop(224),
-                                         transforms.ToTensor(),
-                                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-                                     ]))
+    # valid_dataset = ChestXrayDataSet(train_or_valid="valid",
+    #                                  transform=transforms.Compose([
+    #                                      transforms.ToPILImage(),
+    #                                      transforms.CenterCrop(224),
+    #                                      transforms.ToTensor(),
+    #                                      transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    #                                  ]))
 
-    valid_loader = DataLoader(dataset=valid_dataset, batch_size=64, shuffle=False, num_workers=16)
-    # ====== start trianing =======
+    valid_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+    # ====== start training =======
 
     cudnn.benchmark = True
-    N_CLASSES = 8
-    BATCH_SIZE = 64
 
     # initialize and load the model
     model = DenseNet121(N_CLASSES).cuda()
@@ -190,7 +191,7 @@ def main():
         CLASS_NAMES = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
                        'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
 
-        AUROCs = compute_AUCs(gt, pred)
+        AUROCs = compute_AUCs(gt, pred, N_CLASSES)
         AUROC_avg = np.array(AUROCs).mean()
         print('The average AUROC is {AUROC_avg:.3f}'.format(AUROC_avg=AUROC_avg))
         for i in range(N_CLASSES):
