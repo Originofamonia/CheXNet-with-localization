@@ -69,7 +69,7 @@ class ChestXrayDataSet_plot(Dataset):
 		Returns:
 		    image 
 		"""
-        current_X = np.repeat(np.expand_dims(self.X[index], axis=-1), 3, axis=0)
+        current_X = np.repeat(np.expand_dims(self.X[index], axis=-1), 3, axis=-1)
         image = self.transform(current_X)
         return image
 
