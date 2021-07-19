@@ -21,7 +21,7 @@ def main():
     bbox_list_path = '/home/qiyuan/2021summer/nih/data/BBox_List_2017.csv'
     train_txt_path = '/home/qiyuan/2021summer/nih/data/train_val_list.txt'
     valid_txt_path = '/home/qiyuan/2021summer/nih/data/train_val_list.txt'
-    data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data'  # output folder for preprocessed data
+    data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'  # output folder for preprocessed data
 
     # load data
     meta_data = pd.read_csv(data_entry_path)

@@ -17,7 +17,7 @@ import cv2
 import sys
 import os
 import pickle
-from collections import defaultdict
+import imageio
 from collections import OrderedDict
 
 import skimage
@@ -180,7 +180,7 @@ def main():
     print("load and transform image")
     for i in range(len(test_list)):
         image_path = os.path.join(img_folder_path, test_list[i])
-        img = scipy.misc.imread(image_path)
+        img = imageio.imread(image_path)
         if img.shape != (1024, 1024):
             img = img[:, :, 0]
         img_resized = skimage.transform.resize(img, (256, 256))
