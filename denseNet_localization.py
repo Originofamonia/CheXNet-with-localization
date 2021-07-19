@@ -221,7 +221,7 @@ def main():
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
             output = gcam.generate(target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
-            #### this output is heatmap ####
+            # this output is heatmap
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
             heatmap_output.append(output)
@@ -255,7 +255,7 @@ def main():
         data = npy
         img_fname = test_list[img_id]
 
-        # output avgerge
+        # output average
         prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
             class_index[k], avg_size[k][0], avg_size[k][1], avg_size[k][2], avg_size[k][3])
         prediction_dict[img_id].append(prediction_sent)
