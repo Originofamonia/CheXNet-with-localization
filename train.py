@@ -157,9 +157,9 @@ def main():
             optimizer.zero_grad()
             inputs_sub = augment_img[index:index + BATCH_SIZE]
             labels_sub = augment_label[index:index + BATCH_SIZE]
-            weights_sub = augment_weight[index:index + BATCH_SIZE]
+            # weights_sub = augment_weight[index:index + BATCH_SIZE]
             inputs_sub, labels_sub = Variable(inputs_sub.cuda()), Variable(labels_sub.cuda())
-            weights_sub = Variable(weights_sub.cuda())
+            # weights_sub = Variable(weights_sub.cuda())
 
             # forward + backward + optimize
             outputs = model(inputs_sub)
