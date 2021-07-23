@@ -136,7 +136,7 @@ class GradCAM(PropagationBase):
 
     def _normalize(self, grads):
         l2_norm = torch.sqrt(torch.mean(torch.pow(grads, 2))) + 1e-5
-        return grads / l2_norm.data[0]
+        return grads / l2_norm.item()
 
     def _compute_grad_weights(self, grads):
         grads = self._normalize(grads)

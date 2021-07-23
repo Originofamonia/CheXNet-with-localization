@@ -27,7 +27,7 @@ def main():
     meta_data = pd.read_csv(data_entry_path)
     bbox_list = pd.read_csv(bbox_list_path)
     with open(train_txt_path, "r") as f:
-        train_list = [i.strip() for i in f.readlines()]
+        train_list = [i.strip('.png') for i in f.readlines()]
     with open(valid_txt_path, "r") as f:
         valid_list = [i.strip() for i in f.readlines()]
     # label_eight = list(np.unique(bbox_list["Finding Label"])) + ["No Finding"]
