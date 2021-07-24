@@ -27,46 +27,46 @@ def main():
     meta_data = pd.read_csv(data_entry_path)
     bbox_list = pd.read_csv(bbox_list_path)
     with open(train_txt_path, "r") as f:
-        train_list = [i.strip('.png\n') for i in f.readlines()]
+        train_list = [i.strip() for i in f.readlines()]
     with open(valid_txt_path, "r") as f:
         valid_list = [i.strip() for i in f.readlines()]
     # label_eight = list(np.unique(bbox_list["Finding Label"])) + ["No Finding"]
 
     # transform training images
-    # print("training example:", len(train_list))
-    # print("take care of your RAM here !!!")
-    # train_X = []
-    # for i in range(len(train_list)):
-    #     image_path = os.path.join(image_folder_path, train_list[i])
-    #     img = imageio.imread(image_path)
-    #     if img.shape != (1024, 1024):  # there some image with shape (1024,1024,4) in training set
-    #         img = img[:, :, 0]
-    #     img_resized = skimage.transform.resize(img, (256, 256))  # or use img[::4] here
-    #     train_X.append((np.array(img_resized) / 255).reshape(256, 256, 1))
-    #     if i % 3000 == 0:
-    #         print(i)
-    #
-    # train_X = np.array(train_X)
-    # np.save(os.path.join(data_path, "train_X_small.npy"), train_X)
+    print("training example:", len(train_list))
+    print("take care of your RAM here !!!")
+    train_X = []
+    for i in range(len(train_list)):
+        image_path = os.path.join(image_folder_path, train_list[i])
+        img = imageio.imread(image_path)
+        if img.shape != (1024, 1024):  # there are some images with shape (1024,1024,4) in training set
+            img = img[:, :, 0]
+        img_resized = skimage.transform.resize(img, (256, 256))  # or use img[::4] here
+        train_X.append((np.array(img_resized) / 255).reshape(256, 256, 1))
+        if i % 3000 == 0:
+            print(i)
+
+    train_X = np.array(train_X)
+    np.save(os.path.join(data_path, "train_X_small.npy"), train_X)
 
     # transform validation images
-    # print("validation example:", len(valid_list))
-    # valid_X = []
-    # for i in range(len(valid_list)):
-    #     image_path = os.path.join(image_folder_path, valid_list[i])
-    #     img = imageio.imread(image_path)
-    #     if img.shape != (1024, 1024):
-    #         img = img[:, :, 0]
-    #     img_resized = skimage.transform.resize(img, (256, 256))
-    #     #     if img.shape != (1024,1024):
-    #     #             train_X.append(img[:,:,0])
-    #     #     else:
-    #     valid_X.append((np.array(img_resized) / 255).reshape(256, 256, 1))
-    #     if i % 3000 == 0:
-    #         print(i)
-    #
-    # valid_X = np.array(valid_X)
-    # np.save(os.path.join(data_path, "valid_X_small.npy"), train_X)
+    print("validation example:", len(valid_list))
+    valid_X = []
+    for i in range(len(valid_list)):
+        image_path = os.path.join(image_folder_path, valid_list[i])
+        img = imageio.imread(image_path)
+        if img.shape != (1024, 1024):
+            img = img[:, :, 0]
+        img_resized = skimage.transform.resize(img, (256, 256))
+        #     if img.shape != (1024,1024):
+        #             train_X.append(img[:,:,0])
+        #     else:
+        valid_X.append((np.array(img_resized) / 255).reshape(256, 256, 1))
+        if i % 3000 == 0:
+            print(i)
+
+    valid_X = np.array(valid_X)
+    np.save(os.path.join(data_path, "valid_X_small.npy"), train_X)
 
     # process label
     print("label preprocessing")
