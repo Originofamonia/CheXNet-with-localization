@@ -38,14 +38,12 @@ def main():
     print(f"Training examples: {len(train_list)}")
     train_x, train_y = transform_img_label(image_folder_path, data_entry,
                                            train_list)
-
     train_x = np.array(train_x)
     np.save(os.path.join(data_path, "train_x_small.npy"), train_x)
 
     print(f"Test examples: {len(test_list)}")
     test_x, test_y = transform_img_label(image_folder_path, data_entry,
                                          test_list)
-
     test_x = np.array(test_x)
     np.save(os.path.join(data_path, "test_x_small.npy"), test_x)
 
@@ -80,8 +78,8 @@ def transform_img_label(image_folder_path, df, train_list):
         train_x.append((np.array(img_resized) / 255).reshape(256, 256, 1))
         # train labels
         train_y.append(get_labels(img_id, df))
-        # if i % 3000 == 0:
-        pbar.set_description(f'train or test list: {i}/{len(train_list)}')
+        if i % 300 == 0:
+            pbar.set_description(f'train or test list: {i}/{len(train_list)}')
 
     return train_x, train_y
 
