@@ -80,8 +80,8 @@ def transform_img_label(image_folder_path, df, train_list):
         train_x.append((np.array(img_resized) / 255).reshape(256, 256, 1))
         # train labels
         train_y.append(get_labels(img_id, df))
-        if i % 3000 == 0:
-            pbar.set_description(f'train or test list: {i}/{len(train_list)}')
+        # if i % 3000 == 0:
+        pbar.set_description(f'train or test list: {i}/{len(train_list)}')
 
     return train_x, train_y
 
