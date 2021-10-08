@@ -187,7 +187,7 @@ def main():
             print(f'The AUROC of {names[i]} is {AUROCs[i]}')
 
         # print statistics
-        print(f'[{epoch}] loss: {train_loss / 715:.3f}%')
+        print(f'[{epoch}] loss: {train_loss / 715:.3f}')
 
     torch.save(model.state_dict(),
                f'ckpt/DenseNet121_{n_epochs}_{AUROC_avg:.3f}.pkl')

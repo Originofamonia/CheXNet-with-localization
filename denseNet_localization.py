@@ -30,51 +30,54 @@ import scipy.ndimage.filters as filters
 from scipy.ndimage import binary_dilation
 import matplotlib.patches as patches
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+from train import DenseNet121, ChestXrayDataSet
+
+# os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
 # model archi
 # construct model
-class DenseNet121(nn.Module):
-    """
-    Model modified.
-	The architecture of our model is the same as standard DenseNet121
-	except the classifier layer which has an additional sigmoid function.
-	"""
-
-    def __init__(self, out_size):
-        super(DenseNet121, self).__init__()
-        self.densenet121 = torchvision.models.densenet121(pretrained=True)
-        num_ftrs = self.densenet121.classifier.in_features
-        self.densenet121.classifier = nn.Sequential(
-            nn.Linear(num_ftrs, out_size),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        x = self.densenet121(x)
-        return x
+# class DenseNet121(nn.Module):
+#     """
+#     Model modified.
+# 	The architecture of our model is the same as standard DenseNet121
+# 	except the classifier layer which has an additional sigmoid function.
+# 	"""
+#
+#     def __init__(self, out_size):
+#         super(DenseNet121, self).__init__()
+#         self.densenet121 = torchvision.models.densenet121(pretrained=True)
+#         num_ftrs = self.densenet121.classifier.in_features
+#         self.densenet121.classifier = nn.Sequential(
+#             nn.Linear(num_ftrs, out_size),
+#             nn.Sigmoid()
+#         )
+#
+#     def forward(self, x):
+#         x = self.densenet121(x)
+#         return x
 
 
 # build test dataset
-class ChestXrayDataSet_plot(Dataset):
-    def __init__(self, test_X, transform=None):
-        self.X = np.uint8(test_X * 255)
-        self.transform = transform
-
-    def __getitem__(self, index):
-        """
-		Args:
-		    index: the index of item 
-		Returns:
-		    image 
-		"""
-        current_X = np.repeat(np.expand_dims(self.X[index], axis=-1), 3, axis=-1)
-        image = self.transform(current_X)
-        return image
-
-    def __len__(self):
-        return len(self.X)
+# class ChestXrayDataSet_plot(Dataset):
+#     def __init__(self, test_X, transform=None):
+#         self.X = np.uint8(test_X * 255)
+#         self.transform = transform
+#
+#     def __getitem__(self, index):
+#         """
+# 		Args:
+# 		    index: the index of item
+# 		Returns:
+# 		    image
+# 		"""
+#         current_X = np.repeat(np.expand_dims(self.X[index], axis=-1), 3,
+#                               axis=-1)
+#         image = self.transform(current_X)
+#         return image
+#
+#     def __len__(self):
+#         return len(self.X)
 
 
 # ======= Grad CAM Function =========
@@ -168,39 +171,37 @@ class GradCAM(PropagationBase):
 
 
 def main():
-    test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
-    img_folder_path = '/home/qiyuan/2021summer/nih/data/images/'
+    cudnn.benchmark = True
+    n_epochs = 10
+    n_classes = 15  # has 'no finding'
+    BATCH_SIZE = 32
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    test_dataset = ChestXrayDataSet(train_or_test="test",
+                                    transform=transforms.Compose([
+                                        transforms.ToPILImage(),
+                                        transforms.CenterCrop(224),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize(
+                                            [0.485, 0.456, 0.406],
+                                            [0.229, 0.224, 0.225])
+                                    ]))
 
-    with open(test_txt_path, "r") as f:
-        test_list = [i.strip() for i in f.readlines()]
+    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
+                             shuffle=False, num_workers=4)
 
-    print("number of test examples:", len(test_list))
-
-    test_X = []
-    print("load and transform image")
-    for i in range(len(test_list)):
-        image_path = os.path.join(img_folder_path, test_list[i])
-        img = imageio.imread(image_path)
-        if img.shape != (1024, 1024):
-            img = img[:, :, 0]
-        img_resized = skimage.transform.resize(img, (256, 256))
-        test_X.append((np.array(img_resized)).reshape(256, 256))
-        if i % 300 == 0:
-            print(i)
-            break
-    test_X = np.array(test_X)
-
-    model = DenseNet121(8).cuda()
-    model = torch.nn.DataParallel(model)
-    model.load_state_dict(torch.load("DenseNet121_aug4_pretrain_noWeight_9_0.9901611066017305.pkl"))
+    model = DenseNet121(n_classes).to(device)
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
+    model.load_state_dict(torch.load(
+        "ckpt/DenseNet121_10_0.786.pkl"))
     print("model loaded")
 
-    test_dataset = ChestXrayDataSet_plot(test_X, transform=transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ]))
+    # test_dataset = ChestXrayDataSet_plot(test_X, transform=transforms.Compose([
+    #     transforms.ToPILImage(),
+    #     transforms.CenterCrop(224),
+    #     transforms.ToTensor(),
+    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    # ]))
 
     thresholds = np.load("thresholds.npy")
     print("activate threshold", thresholds)
@@ -214,21 +215,25 @@ def main():
     output_class = []
 
     gcam = GradCAM(model=model, cuda=True)
-    for index in range(len(test_dataset)):
-        input_img = Variable((test_dataset[index]).unsqueeze(0).cuda(), requires_grad=True)
-        probs = gcam.forward(input_img)
+    pbar = tqdm(test_loader)
+    for i, batch in enumerate(test_dataset):
+        batch = tuple(item.to(device) for item in batch)
+        img, label, weight = batch
+        probs = gcam.forward(img)
 
-        activate_classes = np.where((probs > thresholds)[0] == True)[0]  # get the activated class
+        activate_classes = np.where((probs > thresholds)[0] == True)[
+            0]  # get the activated class
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
-            output = gcam.generate(target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
+            output = gcam.generate(
+                target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
             # this output is heatmap
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
             heatmap_output.append(output)
-            image_id.append(index)
+            image_id.append(i)
             output_class.append(activate_class)
-        print("test ", str(index), " finished")
+        print("test ", str(i), " finished")
 
     print("heatmap output done")
     print("total number of heatmap: ", len(heatmap_output))
@@ -240,12 +245,14 @@ def main():
     crop_del = 16
     rescale_factor = 4
 
-    class_index = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration', 'Mass', 'Nodule', 'Pneumonia',
+    class_index = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
+                   'Mass', 'Nodule', 'Pneumonia',
                    'Pneumothorax']
-    avg_size = np.array([[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
-                         [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],
-                         [434.3, 366.7, 168.7, 189.8], [502.4, 458.7, 71.9, 70.4],
-                         [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
+    avg_size = np.array(
+        [[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
+         [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],
+         [434.3, 366.7, 168.7, 189.8], [502.4, 458.7, 71.9, 70.4],
+         [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
 
     prediction_dict = {}
     for i in range(len(test_list)):
@@ -258,7 +265,8 @@ def main():
 
         # output average
         prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
-            class_index[k], avg_size[k][0], avg_size[k][1], avg_size[k][2], avg_size[k][3])
+            class_index[k], avg_size[k][0], avg_size[k][1], avg_size[k][2],
+            avg_size[k][3])
         prediction_dict[img_id].append(prediction_sent)
 
         if np.isnan(data).any():
@@ -280,7 +288,8 @@ def main():
 
         labeled, num_objects = ndimage.label(maxima)
         slices = ndimage.find_objects(labeled)
-        xy = np.array(ndimage.center_of_mass(data, labeled, range(1, num_objects + 1)))
+        xy = np.array(
+            ndimage.center_of_mass(data, labeled, range(1, num_objects + 1)))
 
         for pt in xy:
             if data[int(pt[0]), int(pt[1])] > np.max(data) * .9:
@@ -290,10 +299,11 @@ def main():
                 right = int(min(left + w_k, img_width))
                 lower = int(min(upper + h_k, img_height))
 
-                prediction_sent = '%s %.1f %.1f %.1f %.1f' % (class_index[k], (left + crop_del) * rescale_factor,
-                                                              (upper + crop_del) * rescale_factor,
-                                                              (right - left) * rescale_factor,
-                                                              (lower - upper) * rescale_factor)
+                prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
+                class_index[k], (left + crop_del) * rescale_factor,
+                (upper + crop_del) * rescale_factor,
+                (right - left) * rescale_factor,
+                (lower - upper) * rescale_factor)
 
                 prediction_dict[img_id].append(prediction_sent)
 
@@ -303,7 +313,8 @@ def main():
             prediction = prediction_dict[i]
 
             print(os.path.join(img_folder_path, fname), len(prediction))
-            f.write('%s %d\n' % (os.path.join(img_folder_path, fname), len(prediction)))
+            f.write('%s %d\n' % (
+            os.path.join(img_folder_path, fname), len(prediction)))
 
             for p in prediction:
                 print(p)
