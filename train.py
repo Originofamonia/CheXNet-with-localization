@@ -96,7 +96,7 @@ class DenseNet121(nn.Module):
 def main():
     cudnn.benchmark = True
     n_epochs = 10
-    N_CLASSES = 15  # has 'no finding'
+    n_classes = 15  # has 'no finding'
     BATCH_SIZE = 32
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # prepare training set
@@ -129,7 +129,7 @@ def main():
                              shuffle=False, num_workers=4)
     # ====== start training =======
     # initialize and load the model
-    model = DenseNet121(N_CLASSES).to(device)
+    model = DenseNet121(n_classes).to(device)
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
 
@@ -152,7 +152,7 @@ def main():
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
-
+            pbar.set_description(f'Epoch: {epoch}; loss: {loss.item()}')
         # ======== validation ========
         # switch to evaluate mode
         model.eval()
@@ -170,18 +170,19 @@ def main():
             output = model(img)
             #     output_mean = output.view(bs, n_crops, -1).mean(1)
             pred = torch.cat((pred, output.data), 0)
+            pbar.set_description(f'Test: {i}')
 
         # names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
         #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
         names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
                  'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation',
                  'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening',
-                 'Hernia']
+                 'Hernia', 'No finding']
 
-        AUROCs = compute_AUCs(gt, pred, N_CLASSES)
+        AUROCs = compute_AUCs(gt, pred, n_classes)
         AUROC_avg = np.array(AUROCs).mean()
         print(f'The average AUROC is {AUROC_avg:.3f}')
-        for i in range(N_CLASSES):
+        for i in range(n_classes):
             print(f'The AUROC of {names[i]} is {AUROCs[i]}')
 
         # print statistics
