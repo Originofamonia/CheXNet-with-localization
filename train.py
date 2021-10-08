@@ -195,5 +195,14 @@ def main():
     print('Finished Training')
 
 
+def get_labels():
+    data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'
+    with open(data_path + "binarizer.pkl", "rb") as f:
+        y = pickle.load(f)
+        labels = y.classes_
+        print(labels)
+
+
 if __name__ == '__main__':
-    main()
+    # main()
+    get_labels()
