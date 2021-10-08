@@ -28,6 +28,7 @@ import matplotlib.patches as patches
 
 from train import DenseNet121, ChestXrayDataSet
 
+
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
@@ -146,15 +147,8 @@ def main():
     #     model = torch.nn.DataParallel(model)
 
     model.load_state_dict(torch.load(
-        "ckpt/DenseNet121_6_0.802.pkl",))  # map_location={"cuda:0,1": 'cuda:0'}
+        "ckpt/DenseNet121_6_0.802.pkl", ))  # map_location={"cuda:0,1": 'cuda:0'}
     print("model loaded")
-
-    # test_dataset = ChestXrayDataSet_plot(test_X, transform=transforms.Compose([
-    #     transforms.ToPILImage(),
-    #     transforms.CenterCrop(224),
-    #     transforms.ToTensor(),
-    #     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    # ]))
 
     thresholds = np.load("ckpt/thresholds.npy")
     print("activate threshold", thresholds)
@@ -185,8 +179,7 @@ def main():
             heatmap_output.append(output)
             image_id.append(i)
             output_class.append(activate_class)
-        print("test ", str(i), " finished")
-
+        pbar.set_description(f'Heatmap test: {i}')
     print("heatmap output done")
     print("total number of heatmap: ", len(heatmap_output))
 
@@ -197,14 +190,34 @@ def main():
     crop_del = 16
     rescale_factor = 4
 
-    class_index = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
-                   'Mass', 'Nodule', 'Pneumonia',
-                   'Pneumothorax']
+    # class_index = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
+    #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
+    # avg_size = np.array(
+    #     [[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
+    #      [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],
+    #      [434.3, 366.7, 168.7, 189.8], [502.4, 458.7, 71.9, 70.4],
+    #      [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
+    class_index = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+                   'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
+                   'Infiltration', 'Mass', 'No Finding', 'Nodule',
+                   'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     avg_size = np.array(
-        [[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
-         [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],
-         [434.3, 366.7, 168.7, 189.8], [502.4, 458.7, 71.9, 70.4],
-         [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
+        [[411.8, 512.5, 219.0, 139.1],  # Atelectasis
+         [348.5, 392.3, 479.8, 381.1],  # Cardiomegaly
+         [378.7, 416.7, 276.5, 304.5],  # Consolidation, no
+         [369.3, 209.4, 198.9, 246.0],  # Edema, no
+         [396.5, 415.8, 221.6, 318.0],  # Effusion
+         [394.5, 389.1, 294.0, 297.4],  # Emphysema, no
+         [434.3, 366.7, 168.7, 189.8],  # Fibrosis, no
+         [502.4, 458.7, 71.9, 70.4],  # Hernia, no
+         [394.5, 389.1, 294.0, 297.4],  # Infiltration
+         [434.3, 366.7, 168.7, 189.8],  # Mass
+         [411.8, 512.5, 219.0, 139.1],  # No Finding, no
+         [502.4, 458.7, 71.9, 70.4],  # Nodule
+         [396.5, 415.8, 221.6, 318.0],  # Pleural_Thickening, no
+         [378.7, 416.7, 276.5, 304.5],  # Pneumonia
+         [369.3, 209.4, 198.9, 246.0],  # Pneumothorax
+         ])
 
     prediction_dict = {}
     for i in range(len(test_dataset)):
@@ -212,8 +225,8 @@ def main():
 
     for img_id, k, npy in zip(image_id, output_class, heatmap_output):
 
-        data = npy
-        img_fname = test_list[img_id]
+        # data = npy
+        # img_fname = test_dataset[img_id]
 
         # output average
         prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
@@ -221,7 +234,7 @@ def main():
             avg_size[k][3])
         prediction_dict[img_id].append(prediction_sent)
 
-        if np.isnan(data).any():
+        if np.isnan(npy).any():
             continue
 
         w_k, h_k = (avg_size[k][2:4] * (256 / 1024)).astype(np.int)
@@ -230,9 +243,9 @@ def main():
         neighborhood_size = 100
         threshold = .1
 
-        data_max = filters.maximum_filter(data, neighborhood_size)
-        maxima = (data == data_max)
-        data_min = filters.minimum_filter(data, neighborhood_size)
+        data_max = filters.maximum_filter(npy, neighborhood_size)
+        maxima = (npy == data_max)
+        data_min = filters.minimum_filter(npy, neighborhood_size)
         diff = ((data_max - data_min) > threshold)
         maxima[diff == 0] = 0
         for _ in range(5):
@@ -241,10 +254,10 @@ def main():
         labeled, num_objects = ndimage.label(maxima)
         slices = ndimage.find_objects(labeled)
         xy = np.array(
-            ndimage.center_of_mass(data, labeled, range(1, num_objects + 1)))
+            ndimage.center_of_mass(npy, labeled, range(1, num_objects + 1)))
 
         for pt in xy:
-            if data[int(pt[0]), int(pt[1])] > np.max(data) * .9:
+            if npy[int(pt[0]), int(pt[1])] > np.max(npy) * .9:
                 upper = int(max(pt[0] - (h_k / 2), 0.))
                 left = int(max(pt[1] - (w_k / 2), 0.))
 
@@ -258,10 +271,10 @@ def main():
                     (lower - upper) * rescale_factor)
 
                 prediction_dict[img_id].append(prediction_sent)
-
+    img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
     with open("bounding_box.txt", "w") as f:
         for i in range(len(prediction_dict)):
-            fname = test_list[i]
+            fname = test_dataset[i]
             prediction = prediction_dict[i]
 
             print(os.path.join(img_folder_path, fname), len(prediction))
