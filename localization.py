@@ -146,7 +146,7 @@ def main():
         model = torch.nn.DataParallel(model)
 
     model.load_state_dict(torch.load(
-        "ckpt/DenseNet121_10_0.786.pkl", map_location={"cuda:0,1":'cuda:0'}))
+        "ckpt/DenseNet121_6_0.802.pkl", map_location={"cuda:0,1": 'cuda:0'}))
     print("model loaded")
 
     # test_dataset = ChestXrayDataSet_plot(test_X, transform=transforms.Compose([
@@ -171,9 +171,9 @@ def main():
     for i, batch in enumerate(pbar):
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
-        probs = gcam.forward(img)
-        print(probs.size())
-        activate_classes = np.where((probs > thresholds)[0] == True)[
+        probs = gcam.forward(img)  # [1, 15]
+
+        activate_classes = np.where((probs > thresholds)[0] is True)[
             0]  # get the activated class
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
@@ -252,10 +252,10 @@ def main():
                 lower = int(min(upper + h_k, img_height))
 
                 prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
-                class_index[k], (left + crop_del) * rescale_factor,
-                (upper + crop_del) * rescale_factor,
-                (right - left) * rescale_factor,
-                (lower - upper) * rescale_factor)
+                    class_index[k], (left + crop_del) * rescale_factor,
+                    (upper + crop_del) * rescale_factor,
+                    (right - left) * rescale_factor,
+                    (lower - upper) * rescale_factor)
 
                 prediction_dict[img_id].append(prediction_sent)
 
@@ -266,7 +266,7 @@ def main():
 
             print(os.path.join(img_folder_path, fname), len(prediction))
             f.write('%s %d\n' % (
-            os.path.join(img_folder_path, fname), len(prediction)))
+                os.path.join(img_folder_path, fname), len(prediction)))
 
             for p in prediction:
                 print(p)
