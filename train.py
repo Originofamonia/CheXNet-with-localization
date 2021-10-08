@@ -177,7 +177,7 @@ def main():
         names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
                  'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation',
                  'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening',
-                 'Hernia', 'No finding']
+                 'Hernia', 'No finding']  # needs changing
 
         AUROCs = compute_AUCs(gt, pred, n_classes)
         AUROC_avg = np.array(AUROCs).mean()
