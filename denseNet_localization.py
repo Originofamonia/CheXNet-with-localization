@@ -213,7 +213,7 @@ def main():
     output_class = []
 
     pbar = tqdm(test_loader)
-    for i, batch in enumerate(test_dataset):
+    for i, batch in enumerate(pbar):
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
         probs = gcam.forward(img)
