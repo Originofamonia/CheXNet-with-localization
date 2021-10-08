@@ -172,7 +172,7 @@ def main():
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
         probs = gcam.forward(img)
-
+        print(probs.size())
         activate_classes = np.where((probs > thresholds)[0] == True)[
             0]  # get the activated class
         for activate_class in activate_classes:
