@@ -15,7 +15,7 @@ from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "1"
 
 
 def compute_AUCs(gt, pred, n_classes):
