@@ -175,10 +175,10 @@ def main():
 
         # names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
         #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
-        names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
-                 'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation',
-                 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening',
-                 'Hernia', 'No finding']  # needs changing
+        names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+                 'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration',
+                 'Mass', 'No Finding', 'Nodule', 'Pleural_Thickening',
+                 'Pneumonia', 'Pneumothorax']  # correct
 
         AUROCs = compute_AUCs(gt, pred, n_classes)
         AUROC_avg = np.array(AUROCs).mean()
