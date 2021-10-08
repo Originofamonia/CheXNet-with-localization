@@ -20,10 +20,15 @@ from torch.utils.data import Dataset, DataLoader
 
 def compute_AUCs(gt, pred, n_classes):
     AUROCs = []
+    thresholds = []
     gt_np = gt.cpu().numpy()
     pred_np = pred.cpu().numpy()
     for i in range(n_classes):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
+        fpr, tpr, thres = roc_curve(gt_np[:, i], pred_np[:, i])
+        thresholds.append(thres[np.argmax(tpr + 1 - fpr)])
+    thresholds = np.array(thresholds)
+    np.save('ckpt/thresholds.npy', thresholds)
     return AUROCs
 
 
