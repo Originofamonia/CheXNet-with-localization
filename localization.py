@@ -272,9 +272,13 @@ def main():
 
                 prediction_dict[img_id].append(prediction_sent)
     img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
+    test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
+    with open(test_txt_path, "r") as f:
+        test_list = [i.strip() for i in f.readlines()]
+
     with open("bounding_box.txt", "w") as f:
         for i in range(len(prediction_dict)):
-            fname = test_dataset.image_ids[i]
+            fname = test_list[i]
             prediction = prediction_dict[i]
 
             print(os.path.join(img_folder_path, fname), len(prediction))

@@ -36,13 +36,13 @@ def main():
     # process label
     print("Start preprocessing:")
     print(f"Training examples: {len(train_list)}")
-    train_x, train_y, train_ids = transform_img_label(image_folder_path, data_entry,
+    train_x, train_y = transform_img_label(image_folder_path, data_entry,
                                            train_list)
     train_x = np.array(train_x)
     np.save(os.path.join(data_path, "train_x_small.npy"), train_x)
 
     print(f"Test examples: {len(test_list)}")
-    test_x, test_y, test_ids = transform_img_label(image_folder_path, data_entry,
+    test_x, test_y = transform_img_label(image_folder_path, data_entry,
                                          test_list)
     test_x = np.array(test_x)
     np.save(os.path.join(data_path, "test_x_small.npy"), test_x)
@@ -57,16 +57,16 @@ def main():
     #                           1)  # delete out 8 and "No Finding" column
 
     with open(data_path + "/train_y_onehot.pkl", "wb") as f:
-        pickle.dump([train_y_onehot, train_ids], f)
+        pickle.dump([train_y_onehot, train_list], f)
     with open(data_path + "/test_y_onehot.pkl", "wb") as f:
-        pickle.dump([test_y_onehot, test_ids], f)
+        pickle.dump([test_y_onehot, test_list], f)
     with open(data_path + "/binarizer.pkl", "wb") as f:
         pickle.dump(binarizer, f)
 
 
 def transform_img_label(image_folder_path, df, train_list):
     image_dim = 224
-    train_x, train_y, image_ids = [], [], []
+    train_x, train_y = [], []
     pbar = tqdm(train_list)
     for i, img_id in enumerate(pbar):
         image_path = os.path.join(image_folder_path, img_id)
@@ -79,11 +79,11 @@ def transform_img_label(image_folder_path, df, train_list):
         train_x.append((np.array(img_resized) / 255).reshape(image_dim, image_dim, 1))
         # train labels
         train_y.append(get_labels(img_id, df))
-        image_ids.append(img_id)
+        # image_ids.append(img_id)
         if i % 300 == 0:
             pbar.set_description(f'train or test list: {i}/{len(train_list)}')
 
-    return train_x, train_y, image_ids
+    return train_x, train_y
 
 
 if __name__ == '__main__':
