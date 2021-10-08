@@ -142,8 +142,8 @@ def main():
 
     model = DenseNet121(n_classes).to(device)
     gcam = GradCAM(model=model, cuda=True)  # not pytorch model
-    if torch.cuda.device_count() > 1:
-        model = torch.nn.DataParallel(model)
+    # if torch.cuda.device_count() > 1:
+    #     model = torch.nn.DataParallel(model)
 
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_6_0.802.pkl", map_location={"cuda:0,1": 'cuda:0'}))
