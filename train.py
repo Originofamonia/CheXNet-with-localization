@@ -135,8 +135,8 @@ def main():
     # ====== start training =======
     # initialize and load the model
     model = DenseNet121(n_classes).to(device)
-    if torch.cuda.device_count() > 1:
-        model = torch.nn.DataParallel(model)
+    # if torch.cuda.device_count() > 1:  # use single gpu
+    #     model = torch.nn.DataParallel(model)
 
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=2e-4, betas=(0.9, 0.999))
@@ -266,6 +266,6 @@ def compute_threshold():
 
 
 if __name__ == '__main__':
-    # main()
+    main()
     # get_labels()
-    compute_threshold()
+    # compute_threshold()
