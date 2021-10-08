@@ -186,10 +186,10 @@ def main():
                              shuffle=False, num_workers=4)
 
     model = DenseNet121(n_classes).to(device)
-    gcam = GradCAM(model=model, cuda=True)
+    gcam = GradCAM(model=model, cuda=True)  # not pytorch model
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
-        gcam = torch.nn.DataParallel(gcam)
+
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_10_0.786.pkl"))
     print("model loaded")
