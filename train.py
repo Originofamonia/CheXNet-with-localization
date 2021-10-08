@@ -42,7 +42,7 @@ class ChestXrayDataset(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "train_x_small.npy") * 255 * 255)
             with open(data_path + "train_y_onehot.pkl", "rb") as f:
-                self.y, self.image_ids = pickle.load(f)
+                self.y = pickle.load(f)  # add , self.image_ids later
             sub_bool = (self.y.sum(axis=1) != 0)
             self.y = self.y[sub_bool, :]
             self.X = self.X[sub_bool, :]
@@ -50,7 +50,7 @@ class ChestXrayDataset(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "test_x_small.npy") * 255 * 255)
             with open(data_path + "test_y_onehot.pkl", "rb") as f:
-                self.y, self.image_ids = pickle.load(f)
+                self.y = pickle.load(f)  # add self.image_ids later
 
         self.label_weight_pos = (len(self.y) - self.y.sum(axis=0)) / len(self.y)
         self.label_weight_neg = (self.y.sum(axis=0)) / len(self.y)
