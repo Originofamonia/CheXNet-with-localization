@@ -28,7 +28,7 @@ import matplotlib.patches as patches
 
 from train import DenseNet121, ChestXrayDataSet
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+# os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 
 # ======= Grad CAM Function =========
@@ -58,7 +58,7 @@ class PropagationBase(object):
         self.preds = self.model.forward(self.image)
         #         self.probs = F.softmax(self.preds)[0]
         #         self.prob, self.idx = self.preds[0].data.sort(0, True)
-        return self.preds.cpu().data.numpy()
+        return self.preds.cpu().numpy()
 
     def backward(self, idx):
         self.model.zero_grad()
@@ -207,7 +207,7 @@ def main():
          [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
 
     prediction_dict = {}
-    for i in range(len(test_list)):
+    for i in range(len(test_dataset)):
         prediction_dict[i] = []
 
     for img_id, k, npy in zip(image_id, output_class, heatmap_output):
