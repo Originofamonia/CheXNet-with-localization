@@ -170,7 +170,7 @@ def main():
     cudnn.benchmark = True
     n_epochs = 10
     n_classes = 15  # has 'no finding'
-    BATCH_SIZE = 32
+    batch_size = 1
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     test_dataset = ChestXrayDataSet(train_or_test="test",
                                     transform=transforms.Compose([
@@ -182,7 +182,7 @@ def main():
                                             [0.229, 0.224, 0.225])
                                     ]))
 
-    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size,
                              shuffle=False, num_workers=4)
 
     model = DenseNet121(n_classes).to(device)
