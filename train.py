@@ -100,7 +100,7 @@ class DenseNet121(nn.Module):
 
 def main():
     cudnn.benchmark = True
-    n_epochs = 10
+    n_epochs = 6
     n_classes = 15  # has 'no finding'
     batch_size = 32
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
