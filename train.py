@@ -33,7 +33,7 @@ def compute_AUCs(gt, pred, n_classes):
 
 
 # ====== prepare dataset ======
-class ChestXrayDataSet(Dataset):
+class ChestXrayDataset(Dataset):
     def __init__(self, train_or_test="train", transform=None):
 
         data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'
@@ -42,7 +42,7 @@ class ChestXrayDataSet(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "train_x_small.npy") * 255 * 255)
             with open(data_path + "train_y_onehot.pkl", "rb") as f:
-                self.y = pickle.load(f)
+                self.y, self.image_ids = pickle.load(f)
             sub_bool = (self.y.sum(axis=1) != 0)
             self.y = self.y[sub_bool, :]
             self.X = self.X[sub_bool, :]
@@ -50,7 +50,7 @@ class ChestXrayDataSet(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "test_x_small.npy") * 255 * 255)
             with open(data_path + "test_y_onehot.pkl", "rb") as f:
-                self.y = pickle.load(f)
+                self.y, self.image_ids = pickle.load(f)
 
         self.label_weight_pos = (len(self.y) - self.y.sum(axis=0)) / len(self.y)
         self.label_weight_neg = (self.y.sum(axis=0)) / len(self.y)
@@ -105,10 +105,10 @@ def main():
     batch_size = 32
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # prepare training set
-    train_dataset = ChestXrayDataSet(train_or_test="train",
+    train_dataset = ChestXrayDataset(train_or_test="train",
                                      transform=transforms.Compose([
                                          transforms.ToPILImage(),
-                                         transforms.CenterCrop(224),
+                                         # transforms.CenterCrop(224),
                                          # was RandomCrop
                                          transforms.RandomHorizontalFlip(),
                                          transforms.ToTensor(),
@@ -120,10 +120,10 @@ def main():
                               shuffle=True, num_workers=4)
 
     # prepare validation set
-    test_dataset = ChestXrayDataSet(train_or_test="test",
+    test_dataset = ChestXrayDataset(train_or_test="test",
                                     transform=transforms.Compose([
                                         transforms.ToPILImage(),
-                                        transforms.CenterCrop(224),
+                                        # transforms.CenterCrop(224),
                                         transforms.ToTensor(),
                                         transforms.Normalize(
                                             [0.485, 0.456, 0.406],
@@ -220,7 +220,7 @@ def compute_threshold():
              'Mass', 'No Finding', 'Nodule', 'Pleural_Thickening',
              'Pneumonia', 'Pneumothorax']  # correct
 
-    test_dataset = ChestXrayDataSet(train_or_test="test",
+    test_dataset = ChestXrayDataset(train_or_test="test",
                                     transform=transforms.Compose([
                                         transforms.ToPILImage(),
                                         transforms.CenterCrop(224),

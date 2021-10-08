@@ -26,7 +26,7 @@ import scipy.ndimage.filters as filters
 from scipy.ndimage import binary_dilation
 import matplotlib.patches as patches
 
-from train import DenseNet121, ChestXrayDataSet
+from train import DenseNet121, ChestXrayDataset
 
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
@@ -128,10 +128,10 @@ def main():
     n_classes = 15  # has 'no finding'
     batch_size = 1
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    test_dataset = ChestXrayDataSet(train_or_test="test",
+    test_dataset = ChestXrayDataset(train_or_test="test",
                                     transform=transforms.Compose([
                                         transforms.ToPILImage(),
-                                        transforms.CenterCrop(224),
+                                        # transforms.CenterCrop(224),
                                         transforms.ToTensor(),
                                         transforms.Normalize(
                                             [0.485, 0.456, 0.406],
@@ -201,7 +201,7 @@ def main():
                    'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
                    'Infiltration', 'Mass', 'No Finding', 'Nodule',
                    'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
-    avg_size = np.array(
+    avg_size = np.array(  # xywh
         [[411.8, 512.5, 219.0, 139.1],  # Atelectasis
          [348.5, 392.3, 479.8, 381.1],  # Cardiomegaly
          [378.7, 416.7, 276.5, 304.5],  # Consolidation, no
@@ -274,7 +274,7 @@ def main():
     img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
     with open("bounding_box.txt", "w") as f:
         for i in range(len(prediction_dict)):
-            fname = test_dataset[i]
+            fname = test_dataset.image_ids[i]
             prediction = prediction_dict[i]
 
             print(os.path.join(img_folder_path, fname), len(prediction))
