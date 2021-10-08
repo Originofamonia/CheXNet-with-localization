@@ -10,7 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, roc_curve
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 
@@ -18,11 +18,11 @@ from torch.utils.data import Dataset, DataLoader
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
-def compute_AUCs(gt, pred, N_CLASSES):
+def compute_AUCs(gt, pred, n_classes):
     AUROCs = []
     gt_np = gt.cpu().numpy()
     pred_np = pred.cpu().numpy()
-    for i in range(N_CLASSES):
+    for i in range(n_classes):
         AUROCs.append(roc_auc_score(gt_np[:, i], pred_np[:, i]))
     return AUROCs
 
@@ -97,7 +97,7 @@ def main():
     cudnn.benchmark = True
     n_epochs = 10
     n_classes = 15  # has 'no finding'
-    BATCH_SIZE = 32
+    batch_size = 32
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # prepare training set
     train_dataset = ChestXrayDataSet(train_or_test="train",
@@ -111,7 +111,7 @@ def main():
                                              [0.485, 0.456, 0.406],
                                              [0.229, 0.224, 0.225]),
                                      ]))
-    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE,
+    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size,
                               shuffle=True, num_workers=4)
 
     # prepare validation set
@@ -125,7 +125,7 @@ def main():
                                             [0.229, 0.224, 0.225])
                                     ]))
 
-    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size,
                              shuffle=False, num_workers=4)
     # ====== start training =======
     # initialize and load the model
@@ -203,6 +203,64 @@ def get_labels():
         print(labels)
 
 
+def compute_threshold():
+    """
+    compute threshold for 15 classes
+    """
+    n_classes = 15  # has 'no finding'
+    batch_size = 32
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+             'Effusion', 'Emphysema', 'Fibrosis', 'Hernia', 'Infiltration',
+             'Mass', 'No Finding', 'Nodule', 'Pleural_Thickening',
+             'Pneumonia', 'Pneumothorax']  # correct
+
+    test_dataset = ChestXrayDataSet(train_or_test="test",
+                                    transform=transforms.Compose([
+                                        transforms.ToPILImage(),
+                                        transforms.CenterCrop(224),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize(
+                                            [0.485, 0.456, 0.406],
+                                            [0.229, 0.224, 0.225])
+                                    ]))
+
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size,
+                             shuffle=False, num_workers=4)
+
+    model = DenseNet121(n_classes).to(device)
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
+
+    model.load_state_dict(torch.load(
+        "ckpt/DenseNet121_10_0.786.pkl"))
+    print("model loaded")
+
+    model.eval()
+
+    # initialize the ground truth and output tensor
+    gt = torch.FloatTensor().to(device)
+    pred = torch.FloatTensor().to(device)
+    pbar = tqdm(test_loader)
+    for i, batch in enumerate(pbar):
+        batch = tuple(item.to(device) for item in batch)
+        img, target, weight = batch
+        gt = torch.cat((gt, target), 0)
+        #     bs, n_crops, c, h, w = img.size()
+        # input_var = Variable(img.view(-1, 3, 224, 224).cuda(), volatile=True)
+        output = model(img)
+        #     output_mean = output.view(bs, n_crops, -1).mean(1)
+        pred = torch.cat((pred, output.data), 0)
+        pbar.set_description(f'Test: {i}')
+
+    AUROCs = compute_AUCs(gt, pred, n_classes)
+    AUROC_avg = np.array(AUROCs).mean()
+    print(f'The average AUROC is {AUROC_avg:.3f}')
+    for i in range(n_classes):
+        print(f'The AUROC of {names[i]} is {AUROCs[i]}')
+
+
 if __name__ == '__main__':
-    main()
+    # main()
     # get_labels()
+    compute_threshold()
