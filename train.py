@@ -204,5 +204,5 @@ def get_labels():
 
 
 if __name__ == '__main__':
-    # main()
-    get_labels()
+    main()
+    # get_labels()
