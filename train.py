@@ -152,7 +152,8 @@ def main():
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
-            pbar.set_description(f'Epoch: {epoch}; loss: {loss.item()}')
+            pbar.set_description(f'Epoch: {epoch}/{n_epochs}; loss: '
+                                 f'{loss.item():.3f}')
         # ======== validation ========
         # switch to evaluate mode
         model.eval()
