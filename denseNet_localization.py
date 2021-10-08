@@ -1,5 +1,5 @@
 import numpy as np
-from os import listdir
+from tqdm import tqdm
 import skimage.transform
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -9,10 +9,6 @@ import torch.backends.cudnn as cudnn
 import torchvision
 import torchvision.transforms as transforms
 from torch.autograd import Variable
-import torch.optim as optim
-from torch.autograd import Function
-from torchvision import models
-from torchvision import utils
 import cv2
 import sys
 import os
