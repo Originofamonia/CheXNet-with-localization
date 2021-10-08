@@ -96,7 +96,7 @@ class DenseNet121(nn.Module):
 def main():
     cudnn.benchmark = True
     n_epochs = 10
-    N_CLASSES = 14
+    N_CLASSES = 15  # has 'no finding'
     BATCH_SIZE = 32
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # prepare training set
@@ -135,7 +135,7 @@ def main():
 
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=2e-4, betas=(0.9, 0.999))
-    # total_length = len(augment_img)
+
     for epoch in range(n_epochs):  # loop over the dataset multiple times
         print("Epoch:", epoch)
         train_loss = 0.0
