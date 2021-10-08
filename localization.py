@@ -28,52 +28,7 @@ import matplotlib.patches as patches
 
 from train import DenseNet121, ChestXrayDataSet
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
-
-
-# model archi
-# construct model
-# class DenseNet121(nn.Module):
-#     """
-#     Model modified.
-# 	The architecture of our model is the same as standard DenseNet121
-# 	except the classifier layer which has an additional sigmoid function.
-# 	"""
-#
-#     def __init__(self, out_size):
-#         super(DenseNet121, self).__init__()
-#         self.densenet121 = torchvision.models.densenet121(pretrained=True)
-#         num_ftrs = self.densenet121.classifier.in_features
-#         self.densenet121.classifier = nn.Sequential(
-#             nn.Linear(num_ftrs, out_size),
-#             nn.Sigmoid()
-#         )
-#
-#     def forward(self, x):
-#         x = self.densenet121(x)
-#         return x
-
-
-# build test dataset
-# class ChestXrayDataSet_plot(Dataset):
-#     def __init__(self, test_X, transform=None):
-#         self.X = np.uint8(test_X * 255)
-#         self.transform = transform
-#
-#     def __getitem__(self, index):
-#         """
-# 		Args:
-# 		    index: the index of item
-# 		Returns:
-# 		    image
-# 		"""
-#         current_X = np.repeat(np.expand_dims(self.X[index], axis=-1), 3,
-#                               axis=-1)
-#         image = self.transform(current_X)
-#         return image
-#
-#     def __len__(self):
-#         return len(self.X)
+os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 
 
 # ======= Grad CAM Function =========
