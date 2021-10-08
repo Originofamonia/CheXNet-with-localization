@@ -28,7 +28,7 @@ import matplotlib.patches as patches
 
 from train import DenseNet121, ChestXrayDataSet
 
-# os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
 # ======= Grad CAM Function =========
