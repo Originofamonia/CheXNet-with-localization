@@ -32,15 +32,15 @@ class ChestXrayDataSet(Dataset):
         data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'
         self.train_or_valid = train_or_valid
         if train_or_valid == "train":
-            self.X = np.uint8(np.load(data_path + "train_X_small.npy") * 255 * 255)
+            self.X = np.uint8(np.load(data_path + "train_x_small.npy") * 255 * 255)
             with open(data_path + "train_y_onehot.pkl", "rb") as f:
                 self.y = pickle.load(f)
             sub_bool = (self.y.sum(axis=1) != 0)
             self.y = self.y[sub_bool, :]
             self.X = self.X[sub_bool, :]
         else:
-            self.X = np.uint8(np.load(data_path + "valid_X_small.npy") * 255 * 255)
-            with open(data_path + "valid_y_onehot.pkl", "rb") as f:
+            self.X = np.uint8(np.load(data_path + "test_x_small.npy") * 255 * 255)
+            with open(data_path + "test_y_onehot.pkl", "rb") as f:
                 self.y = pickle.load(f)
 
         self.label_weight_pos = (len(self.y) - self.y.sum(axis=0)) / len(self.y)
@@ -98,7 +98,7 @@ def main():
                                      transform=transforms.Compose([
                                          transforms.ToPILImage(),
                                          transforms.CenterCrop(224),  # was RandomCrop
-                                         # transforms.RandomHorizontalFlip(),
+                                         transforms.RandomHorizontalFlip(),
                                          transforms.ToTensor(),
                                          transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
                                      ]))
