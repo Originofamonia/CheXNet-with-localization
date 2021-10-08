@@ -186,8 +186,10 @@ def main():
                              shuffle=False, num_workers=4)
 
     model = DenseNet121(n_classes).to(device)
+    gcam = GradCAM(model=model, cuda=True)
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
+        gcam = torch.nn.DataParallel(gcam)
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_10_0.786.pkl"))
     print("model loaded")
@@ -210,7 +212,6 @@ def main():
     image_id = []
     output_class = []
 
-    gcam = GradCAM(model=model, cuda=True)
     pbar = tqdm(test_loader)
     for i, batch in enumerate(test_dataset):
         batch = tuple(item.to(device) for item in batch)
