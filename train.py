@@ -3,6 +3,7 @@ import pickle
 import sys
 
 import numpy as np
+from tqdm import tqdm
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
@@ -13,7 +14,8 @@ from sklearn.metrics import roc_auc_score
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 
-os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
+
+# os.environ['CUDA_VISIBLE_DEVICES'] = "0,1"
 
 
 def compute_AUCs(gt, pred, N_CLASSES):
@@ -27,26 +29,26 @@ def compute_AUCs(gt, pred, N_CLASSES):
 
 # ====== prepare dataset ======
 class ChestXrayDataSet(Dataset):
-    def __init__(self, train_or_valid="train", transform=None):
+    def __init__(self, train_or_test="train", transform=None):
 
         data_path = '/home/qiyuan/2021summer/CheXNet-with-localization/data/'
-        self.train_or_valid = train_or_valid
-        if train_or_valid == "train":
-            self.X = np.uint8(np.load(data_path + "train_x_small.npy") * 255 * 255)
+        self.train_or_valid = train_or_test
+        if train_or_test == "train":
+            self.X = np.uint8(
+                np.load(data_path + "train_x_small.npy") * 255 * 255)
             with open(data_path + "train_y_onehot.pkl", "rb") as f:
                 self.y = pickle.load(f)
             sub_bool = (self.y.sum(axis=1) != 0)
             self.y = self.y[sub_bool, :]
             self.X = self.X[sub_bool, :]
         else:
-            self.X = np.uint8(np.load(data_path + "test_x_small.npy") * 255 * 255)
+            self.X = np.uint8(
+                np.load(data_path + "test_x_small.npy") * 255 * 255)
             with open(data_path + "test_y_onehot.pkl", "rb") as f:
                 self.y = pickle.load(f)
 
         self.label_weight_pos = (len(self.y) - self.y.sum(axis=0)) / len(self.y)
         self.label_weight_neg = (self.y.sum(axis=0)) / len(self.y)
-        #         self.label_weight_pos = len(self.y)/self.y.sum(axis=0)
-        #         self.label_weight_neg = len(self.y)/(len(self.y)-self.y.sum(axis=0))
         self.transform = transform
 
     def __getitem__(self, index):
@@ -54,15 +56,17 @@ class ChestXrayDataSet(Dataset):
         Args:
             index: the index of item 
         Returns:
-            image and its labels
+            img and its labels
         """
-        current_X = np.tile(self.X[index], 3)
+        img = np.tile(self.X[index], 3)
         label = self.y[index]
         label_inverse = 1 - label
-        weight = np.add((label_inverse * self.label_weight_neg), (label * self.label_weight_pos))
+        weight = np.add((label_inverse * self.label_weight_neg),
+                        (label * self.label_weight_pos))
         if self.transform is not None:
-            image = self.transform(current_X)
-        return image, torch.from_numpy(label).type(torch.FloatTensor), torch.from_numpy(weight).type(torch.FloatTensor)
+            img = self.transform(img)
+        return img, torch.from_numpy(label).type(
+            torch.FloatTensor), torch.from_numpy(weight).type(torch.FloatTensor)
 
     def __len__(self):
         return len(self.y)
@@ -90,118 +94,101 @@ class DenseNet121(nn.Module):
 
 
 def main():
+    cudnn.benchmark = True
     n_epochs = 10
-    N_CLASSES = 8
+    N_CLASSES = 14
     BATCH_SIZE = 32
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # prepare training set
-    train_dataset = ChestXrayDataSet(train_or_valid="train",
+    train_dataset = ChestXrayDataSet(train_or_test="train",
                                      transform=transforms.Compose([
                                          transforms.ToPILImage(),
-                                         transforms.CenterCrop(224),  # was RandomCrop
+                                         transforms.CenterCrop(224),
+                                         # was RandomCrop
                                          transforms.RandomHorizontalFlip(),
                                          transforms.ToTensor(),
-                                         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+                                         transforms.Normalize(
+                                             [0.485, 0.456, 0.406],
+                                             [0.229, 0.224, 0.225]),
                                      ]))
-    augment_img = []
-    augment_label = []
-    augment_weight = []
-    for i in range(1):  # OOM removed augmentation
-        for j in range(len(train_dataset)):
-            single_img, single_label, single_weight = train_dataset[j]
-            augment_img.append(single_img)
-            augment_label.append(single_label)
-            augment_weight.append(single_weight)
-            if j % 1000 == 0:
-                print('augment:', j)
-
-    # shuffle data
-    perm_index = torch.randperm(len(augment_label))
-    augment_img = torch.stack(augment_img)[perm_index]
-    augment_label = torch.stack(augment_label)[perm_index]
-    augment_weight = torch.stack(augment_weight)[perm_index]
+    train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE,
+                              shuffle=True, num_workers=4)
 
     # prepare validation set
-    # valid_dataset = ChestXrayDataSet(train_or_valid="valid",
-    #                                  transform=transforms.Compose([
-    #                                      transforms.ToPILImage(),
-    #                                      transforms.CenterCrop(224),
-    #                                      transforms.ToTensor(),
-    #                                      transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    #                                  ]))
+    test_dataset = ChestXrayDataSet(train_or_test="test",
+                                    transform=transforms.Compose([
+                                        transforms.ToPILImage(),
+                                        transforms.CenterCrop(224),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize(
+                                            [0.485, 0.456, 0.406],
+                                            [0.229, 0.224, 0.225])
+                                    ]))
 
-    valid_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=4)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE,
+                             shuffle=False, num_workers=4)
     # ====== start training =======
-
-    cudnn.benchmark = True
-
     # initialize and load the model
-    model = DenseNet121(N_CLASSES).cuda()
-    model = torch.nn.DataParallel(model).cuda()
+    model = DenseNet121(N_CLASSES).to(device)
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
 
-    optimizer = optim.Adam(model.parameters(), lr=0.0002, betas=(0.9, 0.999))
-    total_length = len(augment_img)
+    criterion = nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=2e-4, betas=(0.9, 0.999))
+    # total_length = len(augment_img)
     for epoch in range(n_epochs):  # loop over the dataset multiple times
         print("Epoch:", epoch)
-        running_loss = 0.0
-
-        # shuffle
-        perm_index = torch.randperm(len(augment_label))
-        augment_img = augment_img[perm_index]
-        augment_label = augment_label[perm_index]
-        augment_weight = augment_weight[perm_index]
-
-        for index in range(0, total_length, BATCH_SIZE):
-            if index + BATCH_SIZE > total_length:
-                break
+        train_loss = 0.0
+        model.train()
+        pbar = tqdm(train_loader)
+        for i, batch in enumerate(pbar):
+            batch = tuple(item.to(device) for item in batch)
+            img, label, weight = batch
             # zero the parameter gradients
             optimizer.zero_grad()
-            inputs_sub = augment_img[index:index + BATCH_SIZE]
-            labels_sub = augment_label[index:index + BATCH_SIZE]
-            # weights_sub = augment_weight[index:index + BATCH_SIZE]
-            inputs_sub, labels_sub = Variable(inputs_sub.cuda()), Variable(labels_sub.cuda())
-            # weights_sub = Variable(weights_sub.cuda())
 
-            # forward + backward + optimize
-            outputs = model(inputs_sub)
-            criterion = nn.BCELoss()
-            loss = criterion(outputs, labels_sub)
+            outputs = model(img)
+            loss = criterion(outputs, label)
             loss.backward()
             optimizer.step()
-            running_loss += loss.item()
+            train_loss += loss.item()
 
         # ======== validation ========
         # switch to evaluate mode
         model.eval()
 
         # initialize the ground truth and output tensor
-        gt = torch.FloatTensor()
-        gt = gt.cuda()
-        pred = torch.FloatTensor()
-        pred = pred.cuda()
-
-        for i, (inp, target, weight) in enumerate(valid_loader):
-            target = target.cuda()
+        gt = torch.FloatTensor().to(device)
+        pred = torch.FloatTensor().to(device)
+        pbar = tqdm(test_loader)
+        for i, batch in enumerate(pbar):
+            batch = tuple(item.to(device) for item in batch)
+            img, target, weight = batch
             gt = torch.cat((gt, target), 0)
-            #     bs, n_crops, c, h, w = inp.size()
-            input_var = Variable(inp.view(-1, 3, 224, 224).cuda(), volatile=True)
-            output = model(input_var)
+            #     bs, n_crops, c, h, w = img.size()
+            # input_var = Variable(img.view(-1, 3, 224, 224).cuda(), volatile=True)
+            output = model(img)
             #     output_mean = output.view(bs, n_crops, -1).mean(1)
             pred = torch.cat((pred, output.data), 0)
 
-        CLASS_NAMES = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
-                       'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
+        # names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
+        #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
+        names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
+                 'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax', 'Consolidation',
+                 'Edema', 'Emphysema', 'Fibrosis', 'Pleural_Thickening',
+                 'Hernia']
 
         AUROCs = compute_AUCs(gt, pred, N_CLASSES)
         AUROC_avg = np.array(AUROCs).mean()
-        print('The average AUROC is {AUROC_avg:.3f}'.format(AUROC_avg=AUROC_avg))
+        print(f'The average AUROC is {AUROC_avg:.3f}')
         for i in range(N_CLASSES):
-            print('The AUROC of {} is {}'.format(CLASS_NAMES[i], AUROCs[i]))
+            print(f'The AUROC of {names[i]} is {AUROCs[i]}')
 
-        model.train()
         # print statistics
-        print('[%d] loss: %.3f' % (epoch + 1, running_loss / 715))
-        torch.save(model.state_dict(),
-                   'DenseNet121_aug4_pretrain_noWeight_' + str(epoch + 1) + '_' + str(AUROC_avg) + '.pkl')
+        print(f'[{epoch}] loss: {train_loss / 715:.3f}%')
+
+    torch.save(model.state_dict(),
+               f'ckpt/DenseNet121_{n_epochs}_{AUROC_avg:.3f}.pkl')
 
     print('Finished Training')
 
