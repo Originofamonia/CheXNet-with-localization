@@ -58,7 +58,7 @@ class PropagationBase(object):
         self.preds = self.model.forward(self.image)
         #         self.probs = F.softmax(self.preds)[0]
         #         self.prob, self.idx = self.preds[0].data.sort(0, True)
-        return self.preds.cpu().numpy()
+        return self.preds.cpu().detach().numpy()
 
     def backward(self, idx):
         self.model.zero_grad()
