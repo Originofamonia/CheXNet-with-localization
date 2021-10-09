@@ -148,10 +148,10 @@ def main():
 
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_6_0.802.pkl", ))  # map_location={"cuda:0,1": 'cuda:0'}
-    print("model loaded")
+    print("model loaded.")
 
     thresholds = np.load("ckpt/thresholds.npy")
-    print("activate threshold", thresholds)
+    print("activate threshold: ", thresholds)
 
     print("generate heatmap ..........")
 
@@ -166,10 +166,10 @@ def main():
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
         probs = gcam.forward(img)  # [1, 15]
+        print(probs)
 
-        activate_classes = np.where((probs > thresholds)[0] is True)[
+        activate_classes = np.where((probs < thresholds)[0] is True)[
             0]  # get the activated class
-        print(activate_classes)
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
             output = gcam.generate(
