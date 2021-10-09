@@ -93,6 +93,7 @@ class GradCAM(PropagationBase):
                 for module in self.model.named_modules():
                     if id(module[1]) == key:
                         f2.writelines(f'{id(module[1])}\n')
+                        print(module[0])
                         if module[0] == target_layer:
                             return value
         raise ValueError('Invalid layer name: {}'.format(target_layer))
