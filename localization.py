@@ -83,13 +83,15 @@ class GradCAM(PropagationBase):
             module[1].register_backward_hook(func_b)
 
     def _find(self, outputs, target_layer):
-        print(f'outputs: {outputs.keys()}')
-        for key, value in outputs.items():
-            for module in self.model.named_modules():
-                print(id(module[1]))
-                if id(module[1]) == key:
-                    if module[0] == target_layer:
-                        return value
+        with open('outputs_keys.txt', 'w') as f1:
+            f1.write(f'{outputs.keys()}')
+        with open('module_id.txt', 'w') as f2:
+            for key, value in outputs.items():
+                for module in self.model.named_modules():
+                    f2.writelines(f'{id(module[1])}')
+                    if id(module[1]) == key:
+                        if module[0] == target_layer:
+                            return value
         raise ValueError('Invalid layer name: {}'.format(target_layer))
 
     def _normalize(self, grads):
