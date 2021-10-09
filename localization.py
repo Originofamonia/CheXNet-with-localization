@@ -173,6 +173,7 @@ def main():
             gcam.backward(idx=activate_class)
             output = gcam.generate(
                 target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
+            print(output)
             # this output is heatmap
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
@@ -241,7 +242,7 @@ def main():
 
         # Find local maxima
         neighborhood_size = 100
-        threshold = .1
+        threshold = 0.1
 
         data_max = filters.maximum_filter(npy, neighborhood_size)
         maxima = (npy == data_max)
@@ -281,7 +282,7 @@ def main():
             fname = test_list[i]
             prediction = prediction_dict[i]
 
-            print(os.path.join(img_folder_path, fname), len(prediction))
+            # print(os.path.join(img_folder_path, fname), len(prediction))
             f.write('%s %d\n' % (
                 os.path.join(img_folder_path, fname), len(prediction)))
 
