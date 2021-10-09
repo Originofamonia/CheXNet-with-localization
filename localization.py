@@ -72,7 +72,10 @@ class GradCAM(PropagationBase):
     def _set_hook_func(self):
 
         def func_f(module, input, output):
-            # print(id(module))
+            """
+            module: network layer
+            output: hidden layer
+            """
             self.all_fmaps[id(module)] = output.data.cpu()
 
         def func_b(module, grad_in, grad_out):
