@@ -88,7 +88,7 @@ class GradCAM(PropagationBase):
         with open('module_id.txt', 'w') as f2:
             for key, value in outputs.items():
                 for module in self.model.named_modules():
-                    f2.writelines(f'{id(module[1])}')
+                    f2.writelines(f'{id(module[1])}\n')
                     if id(module[1]) == key:
                         if module[0] == target_layer:
                             return value
