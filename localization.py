@@ -169,6 +169,7 @@ def main():
 
         activate_classes = np.where((probs > thresholds)[0] is True)[
             0]  # get the activated class
+        print(activate_classes)
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
             output = gcam.generate(
