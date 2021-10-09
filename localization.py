@@ -72,6 +72,7 @@ class GradCAM(PropagationBase):
     def _set_hook_func(self):
 
         def func_f(module, input, output):
+            print(id(module))
             self.all_fmaps[id(module)] = output.data.cpu()
 
         def func_b(module, grad_in, grad_out):
@@ -82,7 +83,7 @@ class GradCAM(PropagationBase):
             module[1].register_backward_hook(func_b)
 
     def _find(self, outputs, target_layer):
-        print(f'outputs: {outputs}')
+        print(f'outputs: {outputs.keys()}')
         for key, value in outputs.items():
             for module in self.model.named_modules():
                 if id(module[1]) == key:
