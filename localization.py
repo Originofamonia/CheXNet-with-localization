@@ -170,11 +170,12 @@ def main():
 
         activate_classes = np.where((probs < thresholds)[0] is True)[
             0]  # get the activated class
+        print(f'activate_classes: {activate_classes}')
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
             output = gcam.generate(
                 target_layer="module.densenet121.features.denseblock4.denselayer16.conv2")
-            print(output)
+            print(f'cam output: {output}')
             # this output is heatmap
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
