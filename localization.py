@@ -168,7 +168,7 @@ def main():
         probs = gcam.forward(img)  # [1, 15]
         # print(probs)
 
-        activate_classes = np.where((probs < thresholds)[0] is True)[
+        activate_classes = np.where((probs > thresholds)[0] is True)[
             0]  # get the activated class
         print(f'activate_classes: {activate_classes}')
         for activate_class in activate_classes:
