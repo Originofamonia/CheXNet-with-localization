@@ -150,13 +150,13 @@ def main():
                              shuffle=False, num_workers=4)
 
     model = DenseNet121(n_classes).to(device)
-    gcam = GradCAM(model=model, cuda=True)  # not pytorch model
     # if torch.cuda.device_count() > 1:
     #     model = torch.nn.DataParallel(model)
 
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_6_0.802.pkl", ))  # map_location={"cuda:0,1": 'cuda:0'}
     print("model loaded.")
+    gcam = GradCAM(model=model, cuda=True)  # not pytorch model
 
     thresholds = np.load("ckpt/thresholds.npy")
     print("activate threshold: ", thresholds)
