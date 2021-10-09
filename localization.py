@@ -82,6 +82,7 @@ class GradCAM(PropagationBase):
             module[1].register_backward_hook(func_b)
 
     def _find(self, outputs, target_layer):
+        print(f'outputs: {outputs}')
         for key, value in outputs.items():
             for module in self.model.named_modules():
                 if id(module[1]) == key:
@@ -169,7 +170,7 @@ def main():
         # print(probs)
 
         activate_classes = np.where((probs > thresholds)[0] == True)[
-            0]  # get the activated class
+            0]  # get the activated class, don't change ==
         print(f'activate_classes: {activate_classes}')
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
