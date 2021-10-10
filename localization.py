@@ -86,9 +86,10 @@ class GradCAM(PropagationBase):
             module[1].register_backward_hook(func_b)
 
     def _find(self, outputs, target_layer):
-        # with open('outputs_keys.txt', 'w') as f1:
-        #     f1.write(f'{outputs.keys()}')
-        # with open('module_id.txt', 'w') as f2:
+        """
+        outputs: hidden layer or gradient
+        target_layer: (str) name of network layer
+        """
         for key, value in outputs.items():
             for module in self.model.named_modules():
                 if id(module[1]) == key:
@@ -182,7 +183,7 @@ def main():
         # print(f'activate_classes: {activate_classes}')
         for activate_class in activate_classes:
             gcam.backward(idx=activate_class)
-            output = gcam.generate(
+            output = gcam.generate(  # add module if multi-gpu
                 target_layer="densenet121.features.denseblock4.denselayer16.conv2")
             # print(f'cam output: {output}')
             # this output is heatmap
