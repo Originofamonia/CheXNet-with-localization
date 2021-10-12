@@ -104,7 +104,7 @@ def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
         cls = names.index(findings[j])
         color = colors[cls % len(colors)]
         cls = names[cls] if names else cls
-        if findings:  # 0.25 conf thresh
+        if len(findings) > 0:
             label = '%s' % cls
             plot_one_box(box, mosaic, label=label, color=color,
                          line_thickness=tl)
