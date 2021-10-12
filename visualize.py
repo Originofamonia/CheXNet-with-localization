@@ -213,20 +213,11 @@ def plot_inferred_boxes():
         data = json.load(f)  # json box is xyxy
         for i, (k, v) in enumerate(data.items()):
             img_id = test_list[int(k)]
-            findings = [item.split(' ')[0] for item in v]
-            boxes = [item.split(' ')[-4:] for item in v]
-            boxes = np.array(boxes)
             if img_id in img_indices:
-                img = cv2.imread(img_path)  # [1024, 1024, 3]
-                box_lines = lines[i + 1: i + 1 + int(n_box)]
-                boxes = []
-                findings = []
-                for j, row in enumerate(box_lines):
-                    boxes.append(
-                        [float(item) for item in row.split(' ')[1:]])
-                    boxes = np.array(boxes)
-                    findings.append(row.split(' ')[0])
-                # print(findings)
+                findings = [item.split(' ')[0] for item in v]
+                boxes = [item.split(' ')[-4:] for item in v]
+                boxes = np.array(boxes).astype(float)
+                img = cv2.imread(os.path.join(nih_folder_path, 'images', img_id))  # [1024, 1024, 3]
 
                 f = f'{save_dir}/{img_id.strip(".png")}_pred.jpg'  # labels
                 plot_image(img, boxes, findings, None, f, names)
@@ -238,7 +229,7 @@ def plot_labels():
     """
     names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
              'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
-             'Infiltrate', 'Mass', 'No Finding', 'Nodule',
+             'Infiltrate', 'Mass', 'No_Finding', 'Nodule',
              'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     save_dir = 'output'
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
