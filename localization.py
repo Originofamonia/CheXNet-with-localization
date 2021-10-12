@@ -201,7 +201,7 @@ def main():
     img_width_exp, img_height_exp = 1024, 1024
 
     crop_del = 16
-    rescale_factor = 1024/224
+    rescale_factor = 1024 / 224
 
     # class_names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
     #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
@@ -280,11 +280,15 @@ def main():
                 right = int(min(left + w_k, img_width))
                 lower = int(min(upper + h_k, img_height))
                 # changed to xyxy
-                prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
-                    class_names[k], left * rescale_factor,
-                    upper * rescale_factor,
-                    right * rescale_factor,
-                    lower * rescale_factor)
+                # prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
+                #     class_names[k], left * rescale_factor,
+                #     upper * rescale_factor,
+                #     right * rescale_factor,
+                #     lower * rescale_factor)
+                prediction_sent = [class_names[k], left * rescale_factor,
+                                   upper * rescale_factor,
+                                   right * rescale_factor,
+                                   lower * rescale_factor]
 
                 prediction_dict[img_id].append(prediction_sent)
 
