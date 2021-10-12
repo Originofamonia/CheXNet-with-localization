@@ -193,9 +193,13 @@ def main2():
             if '/home' in line:
                 img_path, n_box = line.split(' ')
                 img = cv2.imread(img_path)  # [1024, 1024, 3]
+                box_lines = lines[i + 1: i + 1 + int(n_box)]
                 boxes = []
-                while '/home' not in line:
-                    pass
+                findings = []
+                for j, row in enumerate(box_lines):
+                    boxes.append(row.split(' ')[1:])
+                    findings.append(row.split(' ')[0])
+                print(findings)
 
     f = f'{save_dir}/test_batch{i}_{si}_labels.jpg'  # labels
     plot_image(args, img, targets[si], None, f, names)
