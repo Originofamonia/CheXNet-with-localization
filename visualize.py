@@ -200,6 +200,9 @@ def plot_inferred_boxes():
              'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
              'Infiltration', 'Mass', 'No Finding', 'Nodule',
              'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
+    test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
+    with open(test_txt_path, "r") as f:
+        test_list = [i.strip() for i in f.readlines()]
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
     save_dir = 'output'
     # was xywh, xy are center; new are xyxy
@@ -207,25 +210,24 @@ def plot_inferred_boxes():
     df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
     img_indices = df['Image Index'].unique()
     with open(bbox_file, 'r') as f:
-        data = json.load(f)
-        for i, line in enumerate(data):
-            if '/home' in line:
-                img_path, n_box = line.split(' ')
-                img_id = img_path.split('/')[-1].strip('\n')
-                if img_id in img_indices:
-                    img = cv2.imread(img_path)  # [1024, 1024, 3]
-                    box_lines = lines[i + 1: i + 1 + int(n_box)]
-                    boxes = []
-                    findings = []
-                    for j, row in enumerate(box_lines):
-                        boxes.append(
-                            [float(item) for item in row.split(' ')[1:]])
-                        boxes = np.array(boxes)
-                        findings.append(row.split(' ')[0])
-                    # print(findings)
+        data = json.load(f)  # json box is xyxy
+        for i, (k, v) in enumerate(data.items()):
+            img_id = test_list[k]
+            boxes = v
+            if img_id in img_indices:
+                img = cv2.imread(img_path)  # [1024, 1024, 3]
+                box_lines = lines[i + 1: i + 1 + int(n_box)]
+                boxes = []
+                findings = []
+                for j, row in enumerate(box_lines):
+                    boxes.append(
+                        [float(item) for item in row.split(' ')[1:]])
+                    boxes = np.array(boxes)
+                    findings.append(row.split(' ')[0])
+                # print(findings)
 
-                    f = f'{save_dir}/{img_id.strip(".png")}_pred.jpg'  # labels
-                    plot_image(img, boxes, findings, None, f, names)
+                f = f'{save_dir}/{img_id.strip(".png")}_pred.jpg'  # labels
+                plot_image(img, boxes, findings, None, f, names)
 
 
 def plot_labels():

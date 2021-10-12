@@ -232,11 +232,14 @@ def main():
          [369.3, 209.4, 198.9, 246.0],  # Pneumothorax
          ])
 
+    test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
+    with open(test_txt_path, "r") as f:
+        test_list = [i.strip() for i in f.readlines()]
     prediction_dict = {}
     for i in range(len(test_dataset)):
         prediction_dict[i] = []
 
-    for img_id, k, npy in zip(image_id, output_class, heatmap_output):
+    for img_id, k, npy in zip(test_list, output_class, heatmap_output):
 
         # data = npy
         # img_fname = test_dataset[img_id]
