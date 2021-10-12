@@ -37,15 +37,15 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
                     thickness=tf, lineType=cv2.LINE_AA)
 
 
-def plot_image(image, targets, paths=None, fname='images.jpg', names=None,
-               max_size=640, max_subplots=16):
+def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
+               names=None, max_size=640, max_subplots=16):
     # Plot image grid with labels
 
-    if isinstance(image, torch.Tensor):
-        image = image.cpu().float().numpy()
-    for k, v in targets.items():
-        if isinstance(v, torch.Tensor):
-            targets[k] = v.cpu().numpy()
+    # if isinstance(image, torch.Tensor):
+    #     image = image.cpu().float().numpy()
+    # for k, v in targets.items():
+    #     if isinstance(v, torch.Tensor):
+    #         targets[k] = v.cpu().numpy()
 
     # un-normalise
     if np.max(image) <= 1:
@@ -72,19 +72,18 @@ def plot_image(image, targets, paths=None, fname='images.jpg', names=None,
     # block_x = int(w * (i // ns))
     # block_y = int(h * (i % ns))
 
-    image = image.transpose(1, 2, 0)
+    # image = image.transpose(1, 2, 0)
     if scale_factor < 1:
         image = cv2.resize(image, (w, h))
 
     mosaic = image
     # if len(targets) > 0:
     # image_targets = targets[targets[:, 0] == i]
-    boxes = targets['boxes']
-    classes = targets['labels']  # - 1
-    labels = [names[class_id] for class_id in
-              classes]  # labels if no conf column
-    conf = None if 'image_id' in targets else targets[
-        'scores']  # check for confidence presence (label vs pred)
+    # boxes = targets['boxes']
+    # classes = targets['labels']  # - 1
+    # labels = [names[class_id] for class_id in
+    #           classes]  # labels if no conf column
+    conf = None  # check for confidence presence (label vs pred)
 
     if boxes.shape[0]:
         # absolute coords need scale if image scales
@@ -92,12 +91,11 @@ def plot_image(image, targets, paths=None, fname='images.jpg', names=None,
     # boxes[[0, 2]] += block_x
     # boxes[[1, 3]] += block_y
     for j, box in enumerate(boxes):
-        cls = int(classes[j])
+        cls = int(names.index[findings[j]])
         color = colors[cls % len(colors)]
         cls = names[cls] if names else cls
-        if labels:  # 0.25 conf thresh
-            label = '%s %.1f' % (
-            cls, conf[j]) if conf is not None else '%s' % cls
+        if findings:  # 0.25 conf thresh
+            label = '%s' % cls
             plot_one_box(box, mosaic, label=label, color=color,
                          line_thickness=tl)
 
@@ -179,13 +177,18 @@ def main():
     cv2.destroyAllWindows()
 
 
-def main2():
+def plot_inferred_boxes():
     """
     read in box from txt, read image from nih path
     only plot inferred boxes in this function
     """
+    names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+             'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
+             'Infiltration', 'Mass', 'No Finding', 'Nodule',
+             'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
-    # xywh, xy are center
+    save_dir = 'output'
+    # was xywh, xy are center; new are xyxy
     bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
     df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
     img_indices = df['Image Index'].unique()
@@ -203,15 +206,32 @@ def main2():
                     boxes = []
                     findings = []
                     for j, row in enumerate(box_lines):
-                        boxes.append([float(item) for item in row.split(' ')[1:]])
+                        boxes.append(
+                            [float(item) for item in row.split(' ')[1:]])
                         boxes = np.array(boxes)
                         findings.append(row.split(' ')[0])
                     print(findings)
 
-    f = f'{save_dir}/test_batch{i}_{si}_labels.jpg'  # labels
-    plot_image(args, img, targets[si], None, f, names)
+                    f = f'{save_dir}/{img_id}_pred.jpg'  # labels
+                    plot_image(img, boxes, findings, None, f, names)
+
+
+def plot_labels():
+    """
+    plot boxes from BBox_List_2017.csv
+    """
+    nih_folder_path = '/home/qiyuan/2021summer/nih/data'
+    bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
+    df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
+    img_indices = df['Image Index'].unique()
+
+    for img_index in img_indices:
+        boxes = df.loc[df['Image Index'] == img_index]
+        findings = df.loc[df['Image Index'] == img_index]
+        img = cv2.imread(os.path.join(nih_folder_path, img_index))
 
 
 if __name__ == '__main__':
     # main()
-    main2()
+    # plot_inferred_boxes()
+    plot_labels()

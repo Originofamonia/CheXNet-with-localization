@@ -217,7 +217,7 @@ def main():
     avg_size = np.array(  # xywh
         [[411.8, 512.5, 219.0, 139.1],  # Atelectasis
          [348.5, 392.3, 479.8, 381.1],  # Cardiomegaly
-         [378.7, 416.7, 276.5, 304.5],  # Consolidation, no
+         [378.7, 416.7, 276.5, 304.5],  # Consolidation, no in bbox.csv
          [369.3, 209.4, 198.9, 246.0],  # Edema, no
          [396.5, 415.8, 221.6, 318.0],  # Effusion
          [394.5, 389.1, 294.0, 297.4],  # Emphysema, no
