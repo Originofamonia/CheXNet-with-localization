@@ -48,7 +48,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
 
 
 def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
-               names=None, max_size=640, max_subplots=16):
+               names=None, max_size=1024, max_subplots=16):
     # Plot image grid with labels
 
     # if isinstance(image, torch.Tensor):
@@ -82,7 +82,6 @@ def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
     # block_x = int(w * (i // ns))
     # block_y = int(h * (i % ns))
 
-    # image = image.transpose(1, 2, 0)
     if scale_factor < 1:
         image = cv2.resize(image, (w, h))
 
@@ -220,9 +219,9 @@ def plot_inferred_boxes():
                             [float(item) for item in row.split(' ')[1:]])
                         boxes = np.array(boxes)
                         findings.append(row.split(' ')[0])
-                    print(findings)
+                    # print(findings)
 
-                    f = f'{save_dir}/{img_id}_pred.jpg'  # labels
+                    f = f'{save_dir}/{img_id.strip(".png")}_pred.jpg'  # labels
                     plot_image(img, boxes, findings, None, f, names)
 
 
