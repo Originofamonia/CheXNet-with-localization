@@ -213,7 +213,9 @@ def plot_inferred_boxes():
         data = json.load(f)  # json box is xyxy
         for i, (k, v) in enumerate(data.items()):
             img_id = test_list[k]
-            findings = [item for item in v]
+            findings = [item.split(' ')[0] for item in v]
+            boxes = [item.split(' ')[1:] for item in v]
+            boxes = np.array(boxes)
             if img_id in img_indices:
                 img = cv2.imread(img_path)  # [1024, 1024, 3]
                 box_lines = lines[i + 1: i + 1 + int(n_box)]
