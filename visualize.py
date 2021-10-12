@@ -215,7 +215,8 @@ def plot_inferred_boxes():
             img_id = test_list[int(k)]
             if img_id in img_indices:
                 findings = [item.split(' ')[0] for item in v]
-                findings = [item.replace('No', 'No_Finding') for item in findings]
+                findings = [item.replace('No', 'No_Finding') if item == 'No'
+                            else item for item in findings]
                 boxes = [item.split(' ')[-4:] for item in v]
                 boxes = np.array(boxes).astype(float)
                 img = cv2.imread(os.path.join(nih_folder_path, 'images', img_id))  # [1024, 1024, 3]
