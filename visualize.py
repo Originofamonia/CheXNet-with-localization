@@ -101,7 +101,7 @@ def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
     # boxes[[0, 2]] += block_x
     # boxes[[1, 3]] += block_y
     for j, box in enumerate(boxes):
-        cls = int(names.index[findings[j]])
+        cls = names.index(findings[j])
         color = colors[cls % len(colors)]
         cls = names[cls] if names else cls
         if findings:  # 0.25 conf thresh
