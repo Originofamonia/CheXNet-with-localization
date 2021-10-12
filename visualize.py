@@ -37,7 +37,7 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
                     thickness=tf, lineType=cv2.LINE_AA)
 
 
-def plot_image(args, image, targets, paths=None, fname='images.jpg', names=None,
+def plot_image(image, targets, paths=None, fname='images.jpg', names=None,
                max_size=640, max_subplots=16):
     # Plot image grid with labels
 
@@ -95,7 +95,7 @@ def plot_image(args, image, targets, paths=None, fname='images.jpg', names=None,
         cls = int(classes[j])
         color = colors[cls % len(colors)]
         cls = names[cls] if names else cls
-        if labels or conf[j] > args.conf_thres:  # 0.25 conf thresh
+        if labels:  # 0.25 conf thresh
             label = '%s %.1f' % (
             cls, conf[j]) if conf is not None else '%s' % cls
             plot_one_box(box, mosaic, label=label, color=color,
@@ -191,10 +191,11 @@ def main2():
             if '/home' in line:
                 img_path, n_box = line.split(' ')
                 img = cv2.imread(img_path)
-
+                print(img)
 
     f = f'{save_dir}/test_batch{i}_{si}_labels.jpg'  # labels
     plot_image(args, imgs[si], targets[si], None, f, names)
+
 
 if __name__ == '__main__':
     # main()
