@@ -194,7 +194,7 @@ def main2():
         for i, line in enumerate(lines):
             if '/home' in line:
                 img_path, n_box = line.split(' ')
-                img_id = line.split('/')[-1].strip('\n')
+                img_id = img_path.split('/')[-1].strip('\n')
                 if img_id in img_indices:
                     img = cv2.imread(img_path)  # [1024, 1024, 3]
                     box_lines = lines[i + 1: i + 1 + int(n_box)]
