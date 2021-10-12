@@ -8,6 +8,16 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
+def xywh2xyxy(x):
+    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
+    y[:, 0] = x[:, 0] - x[:, 2] / 2  # top left x
+    y[:, 1] = x[:, 1] - x[:, 3] / 2  # top left y
+    y[:, 2] = x[:, 0] + x[:, 2] / 2  # bottom right x
+    y[:, 3] = x[:, 1] + x[:, 3] / 2  # bottom right y
+    return y
+
+
 def color_list():
     # Return first 10 plt colors as (r,g,b)
     # https://stackoverflow.com/questions/51350872/python-from-color-name-to-rgb
@@ -53,7 +63,7 @@ def plot_image(image, boxes, findings, paths=None, fname='images.jpg',
 
     tl = 3  # line thickness
     tf = max(tl - 1, 1)  # font thickness
-    ch, h, w = image.shape  # batch size, _, height, width
+    h, w, ch = image.shape  # height, width, ch
     bs = 1
     # bs = min(bs, max_subplots)  # limit plot images
     ns = np.ceil(bs ** 0.5)  # number of subplots (square)
@@ -220,15 +230,22 @@ def plot_labels():
     """
     plot boxes from BBox_List_2017.csv
     """
+    names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+             'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
+             'Infiltration', 'Mass', 'No Finding', 'Nodule',
+             'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
+    save_dir = 'output'
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
-    bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
     df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
     img_indices = df['Image Index'].unique()
 
     for img_index in img_indices:
-        boxes = df.loc[df['Image Index'] == img_index]
-        findings = df.loc[df['Image Index'] == img_index]
+        boxes = df.loc[df['Image Index'] == img_index, ['Bbox [x', 'y', 'w', 'h]']].values
+        boxes = xywh2xyxy(boxes)
+        findings = df.loc[df['Image Index'] == img_index, 'Finding Label'].values
         img = cv2.imread(os.path.join(nih_folder_path, img_index))
+        f = f'{save_dir}/{img_index}_label.jpg'  # labels
+        plot_image(img, boxes, findings, None, f, names)
 
 
 if __name__ == '__main__':
