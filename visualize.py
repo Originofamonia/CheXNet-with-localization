@@ -187,14 +187,18 @@ def main2():
     bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
     with open(bbox_file, 'r') as f:
         lines = f.readlines()
+        # img = None
+        # boxes = []
         for i, line in enumerate(lines):
             if '/home' in line:
                 img_path, n_box = line.split(' ')
-                img = cv2.imread(img_path)
-                print(img)
+                img = cv2.imread(img_path)  # [1024, 1024, 3]
+                boxes = []
+                while '/home' not in line:
+                    pass
 
     f = f'{save_dir}/test_batch{i}_{si}_labels.jpg'  # labels
-    plot_image(args, imgs[si], targets[si], None, f, names)
+    plot_image(args, img, targets[si], None, f, names)
 
 
 if __name__ == '__main__':
