@@ -182,8 +182,10 @@ def main():
 def main2():
     """
     read in box from txt, read image from nih path
+    only plot inferred boxes in this function
     """
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
+    # xywh, xy are center
     bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
     df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
     img_indices = df['Image Index'].unique()
@@ -202,6 +204,7 @@ def main2():
                     findings = []
                     for j, row in enumerate(box_lines):
                         boxes.append([float(item) for item in row.split(' ')[1:]])
+                        boxes = np.array(boxes)
                         findings.append(row.split(' ')[0])
                     print(findings)
 

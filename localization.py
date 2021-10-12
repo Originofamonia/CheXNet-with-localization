@@ -201,16 +201,16 @@ def main():
     img_width_exp, img_height_exp = 1024, 1024
 
     crop_del = 16
-    rescale_factor = 4
+    rescale_factor = 1024/224
 
-    # class_index = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
+    # class_names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
     #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
     # avg_size = np.array(
     #     [[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
     #      [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],
     #      [434.3, 366.7, 168.7, 189.8], [502.4, 458.7, 71.9, 70.4],
     #      [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
-    class_index = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
+    class_names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
                    'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
                    'Infiltration', 'Mass', 'No Finding', 'Nodule',
                    'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
@@ -242,15 +242,15 @@ def main():
         # img_fname = test_dataset[img_id]
 
         # output average
-        prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
-            class_index[k], avg_size[k][0], avg_size[k][1], avg_size[k][2],
-            avg_size[k][3])
-        prediction_dict[img_id].append(prediction_sent)
+        # prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
+        #     class_names[k], avg_size[k][0], avg_size[k][1], avg_size[k][2],
+        #     avg_size[k][3])
+        # prediction_dict[img_id].append(prediction_sent)
 
         if np.isnan(npy).any():
             continue
-
-        w_k, h_k = (avg_size[k][2:4] * (256 / 1024)).astype(int)
+        # avg_size is only used here for avg_w and avg_h
+        w_k, h_k = (avg_size[k][2:4] * (224 / 1024)).astype(int)
 
         # Find local maxima
         neighborhood_size = 100
@@ -265,7 +265,7 @@ def main():
             maxima = binary_dilation(maxima)
 
         labeled, num_objects = ndimage.label(maxima)
-        slices = ndimage.find_objects(labeled)
+        # slices = ndimage.find_objects(labeled)
         xy = np.array(
             ndimage.center_of_mass(npy, labeled, range(1, num_objects + 1)))
 
@@ -276,12 +276,12 @@ def main():
 
                 right = int(min(left + w_k, img_width))
                 lower = int(min(upper + h_k, img_height))
-
+                # changed to xyxy
                 prediction_sent = '%s %.1f %.1f %.1f %.1f' % (
-                    class_index[k], (left + crop_del) * rescale_factor,
-                    (upper + crop_del) * rescale_factor,
-                    (right - left) * rescale_factor,
-                    (lower - upper) * rescale_factor)
+                    class_names[k], left * rescale_factor,
+                    upper * rescale_factor,
+                    right * rescale_factor,
+                    lower * rescale_factor)
 
                 prediction_dict[img_id].append(prediction_sent)
 
