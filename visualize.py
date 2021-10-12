@@ -5,7 +5,7 @@ import random
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
+import pandas as pd
 
 
 def color_list():
@@ -183,8 +183,10 @@ def main2():
     """
     read in box from txt, read image from nih path
     """
-    image_folder_path = '/home/qiyuan/2021summer/nih/data/images'
+    nih_folder_path = '/home/qiyuan/2021summer/nih/data'
     bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
+    df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
+    img_indices = df['Image Index'].unique()
     with open(bbox_file, 'r') as f:
         lines = f.readlines()
         # img = None
@@ -192,14 +194,16 @@ def main2():
         for i, line in enumerate(lines):
             if '/home' in line:
                 img_path, n_box = line.split(' ')
-                img = cv2.imread(img_path)  # [1024, 1024, 3]
-                box_lines = lines[i + 1: i + 1 + int(n_box)]
-                boxes = []
-                findings = []
-                for j, row in enumerate(box_lines):
-                    boxes.append(row.split(' ')[1:])
-                    findings.append(row.split(' ')[0])
-                print(findings)
+                img_id = line.split('/')[-1]
+                if img_id in img_indices:
+                    img = cv2.imread(img_path)  # [1024, 1024, 3]
+                    box_lines = lines[i + 1: i + 1 + int(n_box)]
+                    boxes = []
+                    findings = []
+                    for j, row in enumerate(box_lines):
+                        boxes.append([float(item) for item in row.split(' ')[1:]])
+                        findings.append(row.split(' ')[0])
+                    print(findings)
 
     f = f'{save_dir}/test_batch{i}_{si}_labels.jpg'  # labels
     plot_image(args, img, targets[si], None, f, names)
