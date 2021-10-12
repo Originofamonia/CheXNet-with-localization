@@ -25,6 +25,7 @@ import scipy.ndimage as ndimage
 import scipy.ndimage.filters as filters
 from scipy.ndimage import binary_dilation
 import matplotlib.patches as patches
+import json
 
 from train import DenseNet121, ChestXrayDataset
 
@@ -157,16 +158,13 @@ def main():
 
     model.load_state_dict(torch.load(
         "ckpt/DenseNet121_6_0.802.pkl", ))  # map_location={"cuda:0,1": 'cuda:0'}
-    print("model loaded.")
+    print("Model loaded.")
     gcam = GradCAM(model=model, cuda=True)  # not pytorch model
 
     thresholds = np.load("ckpt/thresholds.npy")
-    print("activate threshold: ", thresholds)
+    print("Activate threshold: ", thresholds)
 
-    print("generate heatmap ..........")
-
-    # ======== Create heatmap ===========
-
+    print("Generate heatmap ..........")
     heatmap_output = []
     image_id = []
     output_class = []
@@ -195,6 +193,8 @@ def main():
         pbar.set_description(f'Heatmap test: {i}')
     print("heatmap output done")
     print("total number of heatmap: ", len(heatmap_output))
+    heatmaps = np.array(heatmap_output)
+    np.save(os.path.join('ckpt', "test_heatmaps.npy"), heatmaps)
 
     # ======= Plot bounding box =========
     img_width, img_height = 224, 224
@@ -250,7 +250,7 @@ def main():
         if np.isnan(npy).any():
             continue
 
-        w_k, h_k = (avg_size[k][2:4] * (256 / 1024)).astype(np.int)
+        w_k, h_k = (avg_size[k][2:4] * (256 / 1024)).astype(int)
 
         # Find local maxima
         neighborhood_size = 100
@@ -284,23 +284,27 @@ def main():
                     (lower - upper) * rescale_factor)
 
                 prediction_dict[img_id].append(prediction_sent)
-    img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
-    test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
-    with open(test_txt_path, "r") as f:
-        test_list = [i.strip() for i in f.readlines()]
 
-    with open("bounding_box.txt", "w") as f:
-        for i in range(len(prediction_dict)):
-            fname = test_list[i]
-            prediction = prediction_dict[i]
+    with open('pred_boxes.json', 'w') as f:
+        json.dump(prediction_dict, f)
 
-            # print(os.path.join(img_folder_path, fname), len(prediction))
-            f.write('%s %d\n' % (
-                os.path.join(img_folder_path, fname), len(prediction)))
-
-            for p in prediction:
-                print(p)
-                f.write(p + "\n")
+    # img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
+    # test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
+    # with open(test_txt_path, "r") as f:
+    #     test_list = [i.strip() for i in f.readlines()]
+    #
+    # with open("bounding_box.txt", "w") as f:
+    #     for i in range(len(prediction_dict)):
+    #         fname = test_list[i]
+    #         prediction = prediction_dict[i]
+    #
+    #         # print(os.path.join(img_folder_path, fname), len(prediction))
+    #         f.write('%s %d\n' % (
+    #             os.path.join(img_folder_path, fname), len(prediction)))
+    #
+    #         for p in prediction:
+    #             print(p)
+    #             f.write(p + "\n")
 
 
 if __name__ == '__main__':
