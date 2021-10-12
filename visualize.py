@@ -6,10 +6,15 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import json
 
 
 def xywh2xyxy(x):
-    # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    """
+    Convert nx4 boxes from [x, y, w, h], xy are top-left
+    https://mipt-oulu.github.io/solt/Medical_Data_Augmentation_CXR14.html
+    to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
+    """
     y = x.clone() if isinstance(x, torch.Tensor) else np.copy(x)
     y[:, 0] = x[:, 0]  # top left x
     y[:, 1] = x[:, 1]  # top left y
@@ -198,14 +203,12 @@ def plot_inferred_boxes():
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
     save_dir = 'output'
     # was xywh, xy are center; new are xyxy
-    bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/bounding_box.txt'
+    bbox_file = '/home/qiyuan/2021summer/CheXNet-with-localization/pred_boxes.json'
     df = pd.read_csv(os.path.join(nih_folder_path, 'BBox_List_2017.csv'))
     img_indices = df['Image Index'].unique()
     with open(bbox_file, 'r') as f:
-        lines = f.readlines()
-        # img = None
-        # boxes = []
-        for i, line in enumerate(lines):
+        data = json.load(f)
+        for i, line in enumerate(data):
             if '/home' in line:
                 img_path, n_box = line.split(' ')
                 img_id = img_path.split('/')[-1].strip('\n')
@@ -249,5 +252,5 @@ def plot_labels():
 
 if __name__ == '__main__':
     # main()
-    # plot_inferred_boxes()
-    plot_labels()
+    plot_inferred_boxes()
+    # plot_labels()
