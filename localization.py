@@ -212,7 +212,7 @@ def main():
     #      [378.7, 416.7, 276.5, 304.5], [369.3, 209.4, 198.9, 246.0]])
     class_names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
                    'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
-                   'Infiltration', 'Mass', 'No Finding', 'Nodule',
+                   'Infiltrate', 'Mass', 'No Finding', 'Nodule',
                    'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     avg_size = np.array(  # xywh
         [[411.8, 512.5, 219.0, 139.1],  # Atelectasis
