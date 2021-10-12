@@ -198,7 +198,7 @@ def plot_inferred_boxes():
     """
     names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
              'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
-             'Infiltration', 'Mass', 'No Finding', 'Nodule',
+             'Infiltration', 'Mass', 'No_Finding', 'Nodule',
              'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
     with open(test_txt_path, "r") as f:
@@ -214,7 +214,7 @@ def plot_inferred_boxes():
         for i, (k, v) in enumerate(data.items()):
             img_id = test_list[int(k)]
             findings = [item.split(' ')[0] for item in v]
-            boxes = [item.split(' ')[1:] for item in v]
+            boxes = [item.split(' ')[-4:] for item in v]
             boxes = np.array(boxes)
             if img_id in img_indices:
                 img = cv2.imread(img_path)  # [1024, 1024, 3]
