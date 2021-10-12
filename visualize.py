@@ -243,7 +243,7 @@ def plot_labels():
         boxes = df.loc[df['Image Index'] == img_index, ['Bbox [x', 'y', 'w', 'h]']].values
         boxes = xywh2xyxy(boxes)
         findings = df.loc[df['Image Index'] == img_index, 'Finding Label'].values
-        img = cv2.imread(os.path.join(nih_folder_path, img_index))
+        img = cv2.imread(os.path.join(nih_folder_path, 'images', img_index))
         f = f'{save_dir}/{img_index}_label.jpg'  # labels
         plot_image(img, boxes, findings, None, f, names)
 
