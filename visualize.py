@@ -232,7 +232,7 @@ def plot_labels():
     """
     names = ['Atelectasis', 'Cardiomegaly', 'Consolidation', 'Edema',
              'Effusion', 'Emphysema', 'Fibrosis', 'Hernia',
-             'Infiltration', 'Mass', 'No Finding', 'Nodule',
+             'Infiltrate', 'Mass', 'No Finding', 'Nodule',
              'Pleural_Thickening', 'Pneumonia', 'Pneumothorax']
     save_dir = 'output'
     nih_folder_path = '/home/qiyuan/2021summer/nih/data'
