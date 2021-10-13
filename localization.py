@@ -170,7 +170,7 @@ def main():
     output_class = []
 
     pbar = tqdm(test_loader)
-    for i, batch in enumerate(pbar):
+    for img_id, batch in enumerate(pbar):
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
         probs = gcam.forward(img)  # [1, 15]
@@ -188,9 +188,9 @@ def main():
             if np.sum(np.isnan(output)) > 0:
                 print("fxxx nan")
             heatmap_output.append(output)
-            image_id.append(i)
+            image_id.append(img_id)
             output_class.append(activate_class)
-        pbar.set_description(f'Heatmap test: {i}')
+        pbar.set_description(f'Heatmap test: {img_id}')
     print("heatmap output done")
     print("total number of heatmap: ", len(heatmap_output))
     heatmaps = np.array(heatmap_output)
@@ -236,8 +236,8 @@ def main():
     with open(test_txt_path, "r") as f:
         test_list = [i.strip() for i in f.readlines()]
     prediction_dict = {}
-    for i in range(len(test_dataset)):
-        prediction_dict[i] = []
+    for img_id in test_list:
+        prediction_dict[img_id] = []
 
     for img_id, k, npy in zip(test_list, output_class, heatmap_output):
 
