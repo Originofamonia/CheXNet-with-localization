@@ -135,8 +135,7 @@ class GradCAM(PropagationBase):
 
 def main():
     cudnn.benchmark = True
-    n_epochs = 10
-    n_classes = 15  # has 'no finding'
+    n_classes = 15  # has 'no_finding'
     batch_size = 1
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     test_dataset = ChestXrayDataset(train_or_test="test",
@@ -165,12 +164,12 @@ def main():
     print("Activate threshold: ", thresholds)
 
     print("Generate heatmap ..........")
-    heatmap_output = []
-    image_id = []
-    output_class = []
+    heatmap_output = OrderedDict()
+    output_class = OrderedDict()
 
     pbar = tqdm(test_loader)
-    for img_id, batch in enumerate(pbar):
+    for i, batch in enumerate(pbar):
+        batch, img_id = batch[:3], batch[-1]
         batch = tuple(item.to(device) for item in batch)
         img, label, weight = batch
         probs = gcam.forward(img)  # [1, 15]
@@ -179,22 +178,21 @@ def main():
         activate_classes = np.where((probs > thresholds)[0] == True)[
             0]  # get the activated class, don't change ==
         # print(f'activate_classes: {activate_classes}')
-        for activate_class in activate_classes:
-            gcam.backward(idx=activate_class)
+        for acti_class in activate_classes:
+            gcam.backward(idx=acti_class)
             output = gcam.generate(  # add module if multi-gpu
                 target_layer="densenet121.features.denseblock4.denselayer16.conv2")
             # print(f'cam output: {output}')
             # this output is heatmap
             if np.sum(np.isnan(output)) > 0:
-                print("fxxx nan")
-            heatmap_output.append(output)
-            image_id.append(img_id)
-            output_class.append(activate_class)
+                print(f"heatmap {img_id} has nan")
+            heatmap_output[img_id] = output
+            output_class[img_id] = acti_class
         pbar.set_description(f'Heatmap test: {img_id}')
-    print("heatmap output done")
-    print("total number of heatmap: ", len(heatmap_output))
-    heatmaps = np.array(heatmap_output)
-    np.save(os.path.join('ckpt', "test_heatmaps.npy"), heatmaps)
+    print("Heatmap output done")
+    print("Total number of heatmap: ", len(heatmap_output))
+    with open('heatmaps.json', 'w') as f:
+        json.dump(heatmap_output, f)
 
     # ======= Plot bounding box =========
     img_width, img_height = 224, 224
@@ -235,13 +233,14 @@ def main():
     test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
     with open(test_txt_path, "r") as f:
         test_list = [i.strip() for i in f.readlines()]
-    prediction_dict = {}
+    prediction_dict = OrderedDict()
+
     for img_id in test_list:
-        prediction_dict[img_id] = []
-
-    for img_id, k, npy in zip(test_list, output_class, heatmap_output):
-
-        # data = npy
+        if img_id in output_class and img_id in heatmap_output:
+            k = output_class[img_id]
+            npy = heatmap_output[img_id]
+        else:
+            continue
         # img_fname = test_dataset[img_id]
 
         # output average
@@ -294,24 +293,6 @@ def main():
 
     with open('pred_boxes.json', 'w') as f:
         json.dump(prediction_dict, f)
-
-    # img_folder_path = '/home/qiyuan/2021summer/nih/data/images'
-    # test_txt_path = '/home/qiyuan/2021summer/nih/data/test_list.txt'
-    # with open(test_txt_path, "r") as f:
-    #     test_list = [i.strip() for i in f.readlines()]
-    #
-    # with open("bounding_box.txt", "w") as f:
-    #     for i in range(len(prediction_dict)):
-    #         fname = test_list[i]
-    #         prediction = prediction_dict[i]
-    #
-    #         # print(os.path.join(img_folder_path, fname), len(prediction))
-    #         f.write('%s %d\n' % (
-    #             os.path.join(img_folder_path, fname), len(prediction)))
-    #
-    #         for p in prediction:
-    #             print(p)
-    #             f.write(p + "\n")
 
 
 if __name__ == '__main__':

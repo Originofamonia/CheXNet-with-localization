@@ -42,7 +42,7 @@ class ChestXrayDataset(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "train_x_small.npy") * 255 * 255)
             with open(data_path + "train_y_onehot.pkl", "rb") as f:
-                self.y = pickle.load(f)  # add , self.image_ids later
+                self.y, self.image_ids = pickle.load(f)  # add , self.image_ids later
             sub_bool = (self.y.sum(axis=1) != 0)
             self.y = self.y[sub_bool, :]
             self.X = self.X[sub_bool, :]
@@ -50,7 +50,7 @@ class ChestXrayDataset(Dataset):
             self.X = np.uint8(
                 np.load(data_path + "test_x_small.npy") * 255 * 255)
             with open(data_path + "test_y_onehot.pkl", "rb") as f:
-                self.y = pickle.load(f)  # add self.image_ids later
+                self.y, self.image_ids = pickle.load(f)  # add self.image_ids later
 
         self.label_weight_pos = (len(self.y) - self.y.sum(axis=0)) / len(self.y)
         self.label_weight_neg = (self.y.sum(axis=0)) / len(self.y)
@@ -65,13 +65,14 @@ class ChestXrayDataset(Dataset):
         """
         img = np.tile(self.X[index], 3)
         label = self.y[index]
+        img_id = self.image_ids[index]
         label_inverse = 1 - label
         weight = np.add((label_inverse * self.label_weight_neg),
                         (label * self.label_weight_pos))
         if self.transform is not None:
             img = self.transform(img)
-        return img, torch.from_numpy(label).type(
-            torch.FloatTensor), torch.from_numpy(weight).type(torch.FloatTensor)
+        return img, torch.from_numpy(label).type(torch.FloatTensor), \
+               torch.from_numpy(weight).type(torch.FloatTensor), img_id
 
     def __len__(self):
         return len(self.y)
@@ -147,6 +148,7 @@ def main():
         model.train()
         pbar = tqdm(train_loader)
         for i, batch in enumerate(pbar):
+            batch, img_id = batch[:3], batch[-1]
             batch = tuple(item.to(device) for item in batch)
             img, label, weight = batch
             # zero the parameter gradients
@@ -168,6 +170,7 @@ def main():
         pred = torch.FloatTensor().to(device)
         pbar = tqdm(test_loader)
         for i, batch in enumerate(pbar):
+            batch, img_id = batch[:3], batch[-1]
             batch = tuple(item.to(device) for item in batch)
             img, target, weight = batch
             gt = torch.cat((gt, target), 0)
