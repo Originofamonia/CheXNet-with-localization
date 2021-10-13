@@ -1,6 +1,5 @@
 import numpy as np
 from tqdm import tqdm
-import skimage.transform
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.nn import functional as F
@@ -10,21 +9,11 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.autograd import Variable
 import cv2
-import sys
-import os
-import pickle
-import imageio
 from collections import OrderedDict
 
-import skimage
-from skimage.io import *
-from skimage.transform import *
-
-import scipy
 import scipy.ndimage as ndimage
 import scipy.ndimage.filters as filters
 from scipy.ndimage import binary_dilation
-import matplotlib.patches as patches
 import json
 
 from train import DenseNet121, ChestXrayDataset
@@ -94,8 +83,6 @@ class GradCAM(PropagationBase):
         for key, value in outputs.items():
             for module in self.model.named_modules():
                 if id(module[1]) == key:
-                    # f2.writelines(f'{id(module[1])}\n')
-                    # print(module[0])
                     if module[0] == target_layer:
                         return value
         raise ValueError('Invalid layer name: {}'.format(target_layer))
@@ -202,7 +189,7 @@ def main():
     rescale_factor = 1024 / 224
 
     # class_names = ['Atelectasis', 'Cardiomegaly', 'Effusion', 'Infiltration',
-    #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']
+    #                'Mass', 'Nodule', 'Pneumonia', 'Pneumothorax']  # old
     # avg_size = np.array(
     #     [[411.8, 512.5, 219.0, 139.1], [348.5, 392.3, 479.8, 381.1],
     #      [396.5, 415.8, 221.6, 318.0], [394.5, 389.1, 294.0, 297.4],

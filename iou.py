@@ -46,7 +46,7 @@ def preprocess_bbox_df(mismatch_id=-1):
 
 def validate_score(predicted_xywh, bbox_df, img_id, class_name):
     match_row = bbox_df[(bbox_df['Image Index'] == img_id) & (
-                bbox_df['Finding Label'] == class_name)]
+            bbox_df['Finding Label'] == class_name)]
     try:
         assert (len(match_row) <= 1)
     except:
@@ -81,8 +81,9 @@ def validate_total_score(default_box, valid_dir='valid_heatmap'):
 
         # predict default_box
         prediction_sent = (
-        class_list[k], default_box[k][0], default_box[k][1], default_box[k][2],
-        default_box[k][3])
+            class_list[k], default_box[k][0], default_box[k][1],
+            default_box[k][2],
+            default_box[k][3])
         prediction_dict[img_id].append(prediction_sent)
 
         if np.isnan(data).any():
@@ -124,10 +125,10 @@ def validate_total_score(default_box, valid_dir='valid_heatmap'):
                     continue
                 else:
                     prediction_sent = (
-                    class_list[k], (left + CROP_DEL) * RESCALE_FACTOR,
-                    (upper + CROP_DEL) * RESCALE_FACTOR,
-                    (right - left) * RESCALE_FACTOR,
-                    (lower - upper) * RESCALE_FACTOR)
+                        class_list[k], (left + CROP_DEL) * RESCALE_FACTOR,
+                        (upper + CROP_DEL) * RESCALE_FACTOR,
+                        (right - left) * RESCALE_FACTOR,
+                        (lower - upper) * RESCALE_FACTOR)
 
                 prediction_dict[img_id].append(prediction_sent)
 
